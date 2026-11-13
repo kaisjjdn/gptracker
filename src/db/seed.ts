@@ -1,7 +1,7 @@
 // Sample data, ported from the gptracker.html prototype. Every game and price
 // here is made up. Running this wipes all tables first.
 import { sql } from 'drizzle-orm';
-import { closeDb, db } from './index';
+import { closeDb, db, dbKind } from './index';
 import * as s from './schema';
 
 const DAY = 86_400_000;
@@ -239,6 +239,10 @@ function expandDigital(spec: DigitalSpec): Change[] {
 }
 
 async function main() {
+  // Seeding wipes every table. Only the embedded local database may be seeded.
+  if (dbKind !== 'pglite') {
+    throw new Error('Refusing to seed: DATABASE_URL points at a real database, and seeding deletes all of its data.');
+  }
   await db.execute(
     sql`truncate table price_events, price_points, sales, listings, products, games, stores, regions restart identity cascade`,
   );

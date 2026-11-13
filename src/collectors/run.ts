@@ -1,6 +1,7 @@
 // Daily collection entry point.
 //   npm run collect              every store
 //   npm run collect -- eshop     only the named stores
+//   npm run collect -- --skip eshop   every store except the ones after --skip
 //                                (ps_store, eshop, xbox_store, coupang)
 // Coupang is skipped, with a note, until its API keys are set.
 import { eq } from 'drizzle-orm';
@@ -194,8 +195,11 @@ async function runRetail(collector: RetailCollector, region: Region, asked: bool
 }
 
 async function main() {
-  const only = process.argv.slice(2);
-  const unknown = only.filter((code) => ![...COLLECTORS, ...RETAIL].some((c) => c.store === code));
+  const args = process.argv.slice(2);
+  const skipAt = args.indexOf('--skip');
+  const only = skipAt < 0 ? args : args.slice(0, skipAt);
+  const skip = skipAt < 0 ? [] : args.slice(skipAt + 1);
+  const unknown = [...only, ...skip].filter((code) => ![...COLLECTORS, ...RETAIL].some((c) => c.store === code));
   if (unknown.length > 0) throw new Error(`Unknown store: ${unknown.join(', ')}`);
 
   await ensureReferenceData(db);
@@ -203,11 +207,11 @@ async function main() {
 
   let failed = 0;
   for (const collector of COLLECTORS) {
-    if (only.length > 0 && !only.includes(collector.store)) continue;
+    if (skip.includes(collector.store) || (only.length > 0 && !only.includes(collector.store))) continue;
     failed += await runStore(collector, region);
   }
   for (const collector of RETAIL) {
-    if (only.length > 0 && !only.includes(collector.store)) continue;
+    if (skip.includes(collector.store) || (only.length > 0 && !only.includes(collector.store))) continue;
     if (region.code !== 'KR') continue; // Korean shops only
     failed += await runRetail(collector, region, only.includes(collector.store));
   }

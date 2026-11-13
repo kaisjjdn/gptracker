@@ -1,4 +1,8 @@
-# Collects prices from every store once a day and writes them to the database.
+# Collects prices once a day and writes them to the database.
+#
+# The Nintendo eShop is left out: its store answers GitHub's servers with an
+# empty page. It is collected from a computer in Korea instead (see
+# scripts/mac-collector).
 name: Collect prices
 
 on:
@@ -31,4 +35,4 @@ jobs:
       - name: Check the database secret
         run: test -n "$DATABASE_URL" || { echo "::error::Add the DATABASE_URL secret (Settings > Secrets and variables > Actions)."; exit 1; }
       - run: npm run db:migrate
-      - run: npm run collect
+      - run: npm run collect -- --skip eshop

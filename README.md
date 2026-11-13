@@ -17,6 +17,7 @@ npm run dev          # http://localhost:3000
 |---|---|
 | `npm run collect` | 모든 스토어 수집 |
 | `npm run collect -- eshop` | 이름을 적은 스토어만 수집 (`ps_store`, `eshop`, `xbox_store`, `coupang`) |
+| `npm run collect -- --skip eshop` | 적은 스토어만 빼고 수집 |
 | `npm run db:seed` | 샘플 게임 6개로 채우기. **기존 데이터를 모두 지웁니다.** 화면 개발용이며 운영 DB에서는 실행하지 마세요. |
 | `npm test` / `npm run typecheck` | 테스트 / 타입 검사 |
 
@@ -27,7 +28,8 @@ npm run dev          # http://localhost:3000
 구성은 세 부분입니다.
 
 - **Supabase**: 가격 기록을 저장하는 Postgres 데이터베이스
-- **GitHub Actions**: 매일 00:37(한국 시간)에 가격 수집 (`.github/workflows/collect.yml`)
+- **GitHub Actions**: 매일 00:37(한국 시간)에 PS 스토어와 Xbox 스토어 가격 수집 (`.github/workflows/collect.yml`)
+- **한국에 있는 맥**: 닌텐도 e숍 가격 수집 (`scripts/mac-collector`)
 - **Vercel**: 사이트
 
 ### 1. 데이터베이스 (Supabase)
@@ -50,6 +52,16 @@ npm run dev          # http://localhost:3000
 - 저장소에 60일 동안 활동이 없으면 GitHub가 예약 실행을 멈춥니다. 메일로 알림이 오고, Actions 탭에서 다시 켤 수 있습니다.
 - 예약 시각은 몇 분에서 수십 분 늦어질 수 있습니다.
 - 한 게임이라도 수집에 실패하면 실행이 실패로 표시되고 GitHub가 메일을 보냅니다. 스토어 페이지 구조가 바뀌었을 때 알아차리기 위한 것입니다.
+
+### 닌텐도 e숍은 한국의 컴퓨터에서 수집
+
+닌텐도 스토어는 GitHub 서버의 요청에 빈 페이지를 돌려줘서, GitHub Actions에서는 닌텐도를 건너뜁니다. 대신 한국에 있는 맥에서 매일 00:40에 닌텐도만 수집해 같은 데이터베이스에 저장합니다. 그 시각에 맥이 잠들어 있으면 깨어날 때 실행되고, 전원이 꺼져 있던 날은 건너뜁니다.
+
+```bash
+sh scripts/mac-collector/install.sh
+```
+
+처음 실행하면 `~/gptracker-collector`에 프로젝트 사본을 만들고 `.env.collect` 파일을 엽니다. `DATABASE_URL=` 뒤에 연결 문자열을 붙여넣고 저장한 뒤 같은 명령을 한 번 더 실행하면 등록됩니다. 기록은 `~/Library/Logs/gptracker-collect-eshop.log`에 남고, `sh scripts/mac-collector/uninstall.sh`로 해제합니다.
 
 ### 3. 사이트 (Vercel)
 
