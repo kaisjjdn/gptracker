@@ -1,6 +1,6 @@
 #!/bin/sh
 # Collects Nintendo eShop prices from this Mac and writes them to the shared
-# database. Run daily by launchd (see install.sh); safe to run by hand too.
+# database. Run twice a day by launchd (see install.sh); safe to run by hand too.
 export PATH="$HOME/.local/node/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 cd "$(dirname "$0")/../.." || exit 1
 

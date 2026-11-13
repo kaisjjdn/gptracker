@@ -1,4 +1,4 @@
-# Collects prices once a day and writes them to the database.
+# Collects prices twice a day and writes them to the database.
 #
 # The Nintendo eShop is left out: its store answers GitHub's servers with an
 # empty page. It is collected from a computer in Korea instead (see
@@ -7,7 +7,7 @@ name: Collect prices
 
 on:
   schedule:
-    - cron: '37 15 * * *' # 00:37 in Korea, shortly after stores switch their daily prices
+    - cron: '37 3,15 * * *' # 00:37 and 12:37 in Korea
   workflow_dispatch: # also runnable by hand from the Actions tab
 
 concurrency:

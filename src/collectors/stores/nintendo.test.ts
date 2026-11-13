@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { parseNintendoPage } from './nintendo';
+import { coverFromPage, parseNintendoPage } from './nintendo';
 
 const fixture = (name: string) => readFileSync(new URL(`./fixtures/${name}.html`, import.meta.url), 'utf8');
 const opts = { currency: 'KRW' };
@@ -38,4 +38,13 @@ test('fails loudly when the price section is missing', () => {
 
 test('rejects prices in an unexpected currency', () => {
   assert.throws(() => parseNintendoPage(fixture('nintendo-regular'), '1', { currency: 'USD' }), /priced in KRW/);
+});
+
+test('takes the main gallery picture as the cover', () => {
+  // Two gallery entries as the store embeds them (shortened file names).
+  const gallery =
+    String.raw`[{"thumb":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/aa\/c\/a\/second.jpg","img":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/bb\/c\/a\/second.jpg","full":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/cc\/c\/a\/second.jpg","caption":"second.jpg","position":"2","isMain":false,"type":"image"},` +
+    String.raw`{"thumb":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/aa\/b\/6\/main.jpg","img":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/bb\/b\/6\/main.jpg","full":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/cc\/b\/6\/main.jpg","caption":"main.jpg","position":"1","isMain":true,"type":"image"}]`;
+  assert.equal(coverFromPage(gallery), 'https://store.nintendo.co.kr/media/catalog/product/cache/bb/b/6/main.jpg');
+  assert.equal(coverFromPage('<html></html>'), null);
 });

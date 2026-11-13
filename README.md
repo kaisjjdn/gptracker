@@ -28,7 +28,7 @@ npm run dev          # http://localhost:3000
 구성은 세 부분입니다.
 
 - **Supabase**: 가격 기록을 저장하는 Postgres 데이터베이스
-- **GitHub Actions**: 매일 00:37(한국 시간)에 PS 스토어와 Xbox 스토어 가격 수집 (`.github/workflows/collect.yml`)
+- **GitHub Actions**: 매일 00:37과 12:37(한국 시간)에 PS 스토어와 Xbox 스토어 가격 수집 (`.github/workflows/collect.yml`)
 - **한국에 있는 맥**: 닌텐도 e숍 가격 수집 (`scripts/mac-collector`)
 - **Vercel**: 사이트
 
@@ -55,7 +55,7 @@ npm run dev          # http://localhost:3000
 
 ### 닌텐도 e숍은 한국의 컴퓨터에서 수집
 
-닌텐도 스토어는 GitHub 서버의 요청에 빈 페이지를 돌려줘서, GitHub Actions에서는 닌텐도를 건너뜁니다. 대신 한국에 있는 맥에서 매일 00:40에 닌텐도만 수집해 같은 데이터베이스에 저장합니다. 그 시각에 맥이 잠들어 있으면 깨어날 때 실행되고, 전원이 꺼져 있던 날은 건너뜁니다.
+닌텐도 스토어는 GitHub 서버의 요청에 빈 페이지를 돌려줘서, GitHub Actions에서는 닌텐도를 건너뜁니다. 대신 한국에 있는 맥에서 매일 00:40과 12:40에 닌텐도만 수집해 같은 데이터베이스에 저장합니다. 그 시각에 맥이 잠들어 있으면 깨어날 때 실행되고, 전원이 꺼져 있던 날은 건너뜁니다.
 
 ```bash
 sh scripts/mac-collector/install.sh

@@ -36,6 +36,15 @@ function kstDate(text: string | undefined): Date | null {
   return new Date(`${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}T${h.padStart(2, '0')}:${mi}:00+09:00`);
 }
 
+// The product's main picture, from the image gallery data embedded in the page.
+export function coverFromPage(html: string): string | null {
+  const entries = [...html.matchAll(/\{"thumb":"[^"]*","img":"([^"]+)"[^{}]*?"isMain":(true|false)/g)];
+  const main = entries.find((m) => m[2] === 'true') ?? entries[0];
+  if (!main) return null;
+  const url = main[1].replaceAll('\\/', '/');
+  return url.startsWith(`${ORIGIN}/media/`) ? url : null;
+}
+
 export function parseNintendoPage(html: string, nsuid: string, opts: { currency: string }): Observation[] {
   // The main product's price box sits between these two markers; other price
   // boxes on the page belong to recommended products.
@@ -82,7 +91,7 @@ export function parseNintendoPage(html: string, nsuid: string, opts: { currency:
       edition: 'standard',
       platform,
       url: `${ORIGIN}/${nsuid}`,
-      coverUrl: null,
+      coverUrl: coverFromPage(html),
       publisher: attribute(html, 'publisher')[0] ?? null,
       genre: attribute(html, 'game_category')[0] ?? null,
       price: { basePrice: onSale ? oldPrice : finalPrice, salePrice: onSale ? finalPrice : null, memberPrice: null },

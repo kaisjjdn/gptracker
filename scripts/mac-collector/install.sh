@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sets this Mac up to collect Nintendo eShop prices every day.
+# Sets this Mac up to collect Nintendo eShop prices twice a day.
 #
 # It keeps its own copy of the project in ~/gptracker-collector (so it does not
 # depend on where you edit the code) and registers a launchd job for your user.
@@ -45,9 +45,12 @@ cat > "$PLIST" <<PLIST_END
     <string>/bin/sh</string>
     <string>$DEST/scripts/mac-collector/collect-eshop.sh</string>
   </array>
-  <!-- 00:40 every day. If the Mac is asleep then, it runs when it wakes. -->
+  <!-- 00:40 and 12:40 every day. If the Mac is asleep then, it runs when it wakes. -->
   <key>StartCalendarInterval</key>
-  <dict><key>Hour</key><integer>0</integer><key>Minute</key><integer>40</integer></dict>
+  <array>
+    <dict><key>Hour</key><integer>0</integer><key>Minute</key><integer>40</integer></dict>
+    <dict><key>Hour</key><integer>12</integer><key>Minute</key><integer>40</integer></dict>
+  </array>
   <key>StandardOutPath</key><string>$LOG</string>
   <key>StandardErrorPath</key><string>$LOG</string>
 </dict>
@@ -58,6 +61,6 @@ launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 
 echo
-echo "Installed. Nintendo eShop prices are collected daily at 00:40."
+echo "Installed. Nintendo eShop prices are collected daily at 00:40 and 12:40."
 echo "Run it now:  launchctl kickstart gui/$(id -u)/$LABEL"
 echo "See the log: cat $LOG"
