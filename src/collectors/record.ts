@@ -53,6 +53,13 @@ export async function recordObservation(db: Db, ctx: RecordContext, obs: Observa
         })
         .returning();
     }
+    if (listing.productId !== product.id) {
+      // The same store item is already recorded under another product, usually
+      // because one game's page lists another tracked game as an edition.
+      // Recording it twice would make its price flip between two readings.
+      const [owner] = await tx.select().from(s.products).where(eq(s.products.id, listing.productId));
+      if (owner && owner.gameId !== ctx.gameId) return [];
+    }
     await tx
       .update(s.listings)
       .set({ lastCheckedAt: ctx.now, url: obs.url, sellerName: obs.sellerName ?? listing.sellerName, isActive: true })
