@@ -21,7 +21,7 @@ function connect(): Connection {
   if (url) {
     // prepare:false suits connection poolers (Supabase, Neon); a small pool
     // keeps many short-lived server instances from using up the database's connections.
-    const client = postgres(url, { prepare: false, max: 3, idle_timeout: 20 });
+    const client = postgres(url, { prepare: false, max: 3, idle_timeout: 20, connect_timeout: 10 });
     return {
       db: drizzlePostgres(client, { schema }),
       kind: 'postgres',

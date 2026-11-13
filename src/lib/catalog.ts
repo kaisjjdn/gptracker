@@ -27,23 +27,24 @@ const CHIP: Record<string, string> = {
   ps5: 'PS5', ps4: 'PS4', switch2: 'Switch 2', switch: 'Switch', xbox_series: 'Xbox', xbox_one: 'Xbox One',
 };
 
-export async function loadCatalog(): Promise<GameView[]> {
-  const [games, products, listings, points, events] = await Promise.all([
-    db.select().from(s.games).orderBy(asc(s.games.id)),
-    db.select().from(s.products),
-    db
-      .select({ listing: s.listings, storeCode: s.stores.code, storeName: s.stores.name })
-      .from(s.listings)
-      .innerJoin(s.stores, eq(s.listings.storeId, s.stores.id))
-      .innerJoin(s.regions, eq(s.listings.regionId, s.regions.id))
-      .where(eq(s.regions.code, REGION)),
-    db.select().from(s.pricePoints).orderBy(asc(s.pricePoints.observedAt), asc(s.pricePoints.id)),
-    db
-      .select({ event: s.priceEvents, saleName: s.sales.name, saleEndsAt: s.sales.endsAt })
-      .from(s.priceEvents)
-      .leftJoin(s.sales, eq(s.priceEvents.saleId, s.sales.id))
-      .orderBy(asc(s.priceEvents.occurredAt), asc(s.priceEvents.id)),
-  ]);
+async function readCatalog(): Promise<GameView[]> {
+  // One query at a time, on purpose. With this driver and a pooled Postgres
+  // connection, queries that have to wait for a free connection never finish,
+  // which froze the deployed site. Run in sequence, nothing ever waits.
+  const games = await db.select().from(s.games).orderBy(asc(s.games.id));
+  const products = await db.select().from(s.products);
+  const listings = await db
+    .select({ listing: s.listings, storeCode: s.stores.code, storeName: s.stores.name })
+    .from(s.listings)
+    .innerJoin(s.stores, eq(s.listings.storeId, s.stores.id))
+    .innerJoin(s.regions, eq(s.listings.regionId, s.regions.id))
+    .where(eq(s.regions.code, REGION));
+  const points = await db.select().from(s.pricePoints).orderBy(asc(s.pricePoints.observedAt), asc(s.pricePoints.id));
+  const events = await db
+    .select({ event: s.priceEvents, saleName: s.sales.name, saleEndsAt: s.sales.endsAt })
+    .from(s.priceEvents)
+    .leftJoin(s.sales, eq(s.priceEvents.saleId, s.sales.id))
+    .orderBy(asc(s.priceEvents.occurredAt), asc(s.priceEvents.id));
 
   const pointsOf = new Map<number, PointRow[]>();
   for (const p of points) {
@@ -131,4 +132,30 @@ export async function loadCatalog(): Promise<GameView[]> {
     }
   }
   return views;
+}
+
+const FRESH_MS = 30_000;
+const TIMEOUT_MS = 10_000;
+let latest: { at: number; result: Promise<GameView[]> } | null = null;
+
+// The catalog for the screens. Page views arriving together (and the several
+// reads one page makes) share a single read, kept for half a minute, so the
+// database only ever sees one query from this server at a time. A read that
+// stalls fails after ten seconds instead of leaving the page loading forever.
+export function loadCatalog(): Promise<GameView[]> {
+  if (latest && Date.now() - latest.at < FRESH_MS) return latest.result;
+  let timer: ReturnType<typeof setTimeout>;
+  const result = Promise.race([
+    readCatalog(),
+    new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('The price database did not answer in time.')), TIMEOUT_MS);
+    }),
+  ]).finally(() => clearTimeout(timer));
+  const entry = { at: Date.now(), result };
+  latest = entry;
+  // A failed read is not kept, so the next page view tries again.
+  result.catch(() => {
+    if (latest === entry) latest = null;
+  });
+  return result;
 }
