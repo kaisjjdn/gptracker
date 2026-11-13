@@ -40,4 +40,22 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'rhythm-heaven-miracle-stars', title: '리듬 천국 미라클 스타즈', eshopId: '70010000122820' },
   { slug: 'forza-horizon-5', title: 'Forza Horizon 5', xboxProductId: '9NKX70BBCDRN',
     discs: [{ platform: 'xbox_series', query: 'XBOX 포르자 호라이즌 5', names: ['포르자 호라이즌 5', 'Forza Horizon 5'] }] },
+  { slug: 'elden-ring', title: 'ELDEN RING', psConceptId: '10000333', xboxProductId: '9P3J32CTXLRZ' },
+  // Nintendo sells separate Switch and Switch 2 versions; the Switch one is tracked.
+  { slug: 'hogwarts-legacy', title: '호그와트 레거시', psConceptId: '232447', eshopId: '70010000062279', xboxProductId: '9MT5NJ5W7B8Z' },
+  // Nintendo only sells the Ultimate Edition, so it is left out.
+  { slug: 'cyberpunk-2077', title: '사이버펑크 2077', psConceptId: '234567', xboxProductId: 'BX3M8L83BBRW' },
+  { slug: 'monster-hunter-wilds', title: 'Monster Hunter Wilds', psConceptId: '10005176', xboxProductId: '9NMT6XFN0LVD' },
+  { slug: 'baldurs-gate-3', title: '발더스 게이트 3', psConceptId: '10007460', xboxProductId: '9ND58LQTG09T' },
+  { slug: 'persona-3-reload', title: '페르소나3 리로드', psConceptId: '10001555', xboxProductId: '9NKK6Z0K3RH2' },
+  { slug: 'god-of-war-ragnarok', title: '갓 오브 워 라그나로크', psConceptId: '10001850' },
+  { slug: 'marvels-spider-man-2', title: '마블 스파이더맨 2', psConceptId: '10002456' },
+  { slug: 'ghost-of-yotei', title: '고스트 오브 요테이', psConceptId: '10003923' },
+  { slug: 'stellar-blade', title: '스텔라 블레이드', psConceptId: '10006891' },
+  { slug: 'zelda-tears-of-the-kingdom', title: '젤다의 전설 티어스 오브 더 킹덤', eshopId: '70010000063716' },
+  { slug: 'mario-kart-world', title: '마리오 카트 월드', eshopId: '70010000094003' },
+  { slug: 'animal-crossing-new-horizons', title: '모여봐요 동물의 숲', eshopId: '70010000027621' },
+  { slug: 'super-mario-odyssey', title: '슈퍼 마리오 오디세이', eshopId: '70010000009372' },
+  { slug: 'starfield', title: 'Starfield', xboxProductId: '9NCJSXWZTP88' },
+  { slug: 'ea-sports-fc-26', title: 'EA SPORTS FC 26', psConceptId: '10011898', eshopId: '70010000091350', xboxProductId: '9MXZBTLG26VX' },
 ];
