@@ -4,7 +4,6 @@
 // while the list is hand-picked. Past a few thousand listings this should
 // become per-game queries.
 import { asc, eq } from 'drizzle-orm';
-import { unstable_cache } from 'next/cache';
 import { db } from '@/db';
 import * as s from '@/db/schema';
 import {
@@ -28,7 +27,7 @@ const CHIP: Record<string, string> = {
   ps5: 'PS5', ps4: 'PS4', switch2: 'Switch 2', switch: 'Switch', xbox_series: 'Xbox', xbox_one: 'Xbox One',
 };
 
-async function readCatalog(): Promise<GameView[]> {
+export async function loadCatalog(): Promise<GameView[]> {
   const [games, products, listings, points, events] = await Promise.all([
     db.select().from(s.games).orderBy(asc(s.games.id)),
     db.select().from(s.products),
@@ -133,9 +132,3 @@ async function readCatalog(): Promise<GameView[]> {
   }
   return views;
 }
-
-// Prices change once a day, so the deployed site reuses one read for ten
-// minutes instead of querying on every page view. Local development always
-// reads fresh, so a collection run shows up immediately.
-export const loadCatalog =
-  process.env.NODE_ENV === 'production' ? unstable_cache(readCatalog, ['catalog'], { revalidate: 600 }) : readCatalog;

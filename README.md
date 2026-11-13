@@ -68,7 +68,7 @@ sh scripts/mac-collector/install.sh
 1. https://vercel.com 에서 GitHub 저장소를 가져옵니다(Import).
 2. **Environment Variables**에 `DATABASE_URL`을 추가하고 배포합니다.
 
-사이트는 가격 데이터를 10분 동안 기억해 두고 보여줍니다. 수집 직후에는 최대 10분 뒤에 새 가격이 나타납니다.
+사이트는 열 때마다 데이터베이스에서 최신 가격을 읽습니다. 서버는 데이터베이스와 가까운 서울 리전에서 실행되도록 `vercel.json`에 지정해 두었습니다.
 
 ## 구조
 
