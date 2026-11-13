@@ -96,5 +96,14 @@ export async function collectNintendo(nsuid: string, opts: { regionCode: string;
   const url = `${ORIGIN}/${nsuid}`;
   const res = await fetch(url, { headers: { 'user-agent': USER_AGENT }, signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`Nintendo eShop: ${url} responded ${res.status}`);
-  return parseNintendoPage(await res.text(), nsuid, opts);
+  const html = await res.text();
+  try {
+    return parseNintendoPage(html, nsuid, opts);
+  } catch (err) {
+    // Say what came back instead, to tell a changed page from a regional or
+    // access notice served to this machine.
+    const title = html.match(/<title[^>]*>([^<]*)/i)?.[1]?.trim().slice(0, 80) ?? 'none';
+    const where = res.url === url ? '' : `, redirected to ${res.url}`;
+    throw new Error(`${err instanceof Error ? err.message : err} [received ${html.length} bytes, title "${title}"${where}]`);
+  }
 }
