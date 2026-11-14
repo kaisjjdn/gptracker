@@ -1,10 +1,12 @@
+import { sized } from '@/lib/image';
+
 // A game's cover image, or a coloured tile with its first letter when there is none.
 export function Cover({ title, slug, url }: { title: string; slug: string; url: string | null }) {
   if (url) {
     return (
       <div className="cover" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt="" />
+        <img src={sized(url, 160)} alt="" />
       </div>
     );
   }

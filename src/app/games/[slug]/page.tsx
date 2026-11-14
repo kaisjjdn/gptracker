@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Browser, type BrowserParams } from '@/components/Browser';
+import { GamePage as GameScreen, type BrowserParams } from '@/components/Browser';
 import { loadCatalog } from '@/lib/catalog';
 
 export const dynamic = 'force-dynamic';
@@ -14,5 +14,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GamePage({ params, searchParams }: Props) {
   const { slug } = await params;
-  return <Browser slug={slug} params={await searchParams} />;
+  return <GameScreen slug={slug} params={await searchParams} />;
 }

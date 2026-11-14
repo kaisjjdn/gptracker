@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Filters the game list as you type by putting the text in the address (?q=).
+// Filters the game grid as you type by putting the text in the address (?q=).
 export function SearchBox() {
   const router = useRouter();
   const pathname = usePathname();
@@ -20,7 +20,10 @@ export function SearchBox() {
       if (value.trim()) next.set('q', value.trim());
       else next.delete('q');
       const qs = next.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      const url = qs ? `/?${qs}` : '/';
+      // On a game's page, searching goes back to the grid of matches.
+      if (pathname === '/') router.replace(url, { scroll: false });
+      else router.push(url);
     }, 200);
   };
 
