@@ -87,6 +87,11 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
 
       <section className="price">
         <div>
+          {s.edition && (
+            <div className="edition">
+              <span className="tag">{s.edition}</span> {s.storeName}에서는 {s.edition}만 판매해요.
+            </div>
+          )}
           {s.pct > 0 && (
             <div>
               <span className="off">-{s.pct}%</span> <span className="was">{won(s.base)}</span>

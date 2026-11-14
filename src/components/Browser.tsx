@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { loadCatalog } from '@/lib/catalog';
-import { atLow } from '@/lib/view';
+import { atLow, comparable } from '@/lib/view';
 import { Cover } from './Cover';
 import { GameDetail } from './GameDetail';
 
@@ -23,8 +23,8 @@ export async function Browser({ slug, params }: { slug?: string; params: Browser
 
   const items = games.filter((g) => {
     if (q && !g.title.toLowerCase().includes(q)) return false;
-    if (filter === 'sale') return g.series.some((s) => s.pct > 0);
-    if (filter === 'low') return g.series.some(atLow);
+    if (filter === 'sale') return comparable(g.series).some((s) => s.pct > 0);
+    if (filter === 'low') return comparable(g.series).some(atLow);
     return true;
   });
   const selected = slug ? games.find((g) => g.slug === slug) : items[0];
@@ -52,9 +52,11 @@ export async function Browser({ slug, params }: { slug?: string; params: Browser
         <nav className="list" aria-label="게임 목록">
           {items.length === 0 && <div className="empty">조건에 맞는 게임이 없어요. 검색어나 필터를 바꿔 보세요.</div>}
           {items.map((g) => {
-            const best = Math.min(...g.series.map((s) => s.cur));
-            const low = g.series.some(atLow);
-            const sale = g.series.some((s) => s.pct > 0);
+            // One price per game: the cheapest store selling the plain game.
+            const compared = comparable(g.series);
+            const best = Math.min(...compared.map((s) => s.cur));
+            const low = compared.some(atLow);
+            const sale = compared.some((s) => s.pct > 0);
             return (
               <Link key={g.slug} className="row" href={`/games/${g.slug}${query(filter)}`} aria-current={g.slug === selected?.slug}>
                 <Cover title={g.title} slug={g.slug} url={g.coverUrl} />

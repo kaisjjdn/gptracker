@@ -68,6 +68,8 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .big{font-size:52px;line-height:1}
 .was{color:var(--muted);text-decoration:line-through;font-size:15px}
 .off{font-weight:700;color:var(--surface);background:var(--pc);padding:1px 7px;border-radius:5px;font-size:14px}
+.edition{font-size:13.5px;color:var(--muted);margin-bottom:8px}
+.edition .tag{border:1px solid var(--pc);color:var(--pc);margin-right:4px}
 .member{margin-top:6px;font-size:14px;color:var(--muted)}
 .member b{color:var(--ink)}
 .verdict{border-left:3px solid var(--vc);padding:2px 0 2px 14px}

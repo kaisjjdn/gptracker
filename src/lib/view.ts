@@ -11,6 +11,7 @@ export type Series = {
   key: Family;
   storeName: string;
   chip: string; // console label for the list
+  edition: string | null; // set when this store only sells a bigger edition, not the plain game
   url: string | null;
   changes: Change[];
   sales: { s: number; e: number | null }[]; // periods spent on sale; e is null while it runs
@@ -110,6 +111,14 @@ export function lowestOverTime(histories: { t: number; price: number; note: stri
 }
 
 export const atLow = (s: Series) => s.changes.length > 1 && s.cur <= s.low;
+
+// The stores to compare when showing one price for a game: those selling the
+// plain game. A bigger edition is a different product, so it only counts when
+// no store sells the plain game.
+export function comparable(series: Series[]): Series[] {
+  const plain = series.filter((s) => s.edition === null);
+  return plain.length > 0 ? plain : series;
+}
 
 export type Verdict = { tone: 'good' | 'wait' | 'ok'; head: string; text: string; sub: string };
 

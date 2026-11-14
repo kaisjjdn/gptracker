@@ -112,6 +112,11 @@ async function runStore(collector: StoreCollector, region: Region): Promise<numb
     try {
       const observations = await collector.collect(collector.idOf(game)!, region);
       if (observations.length === 0) throw new Error('no priced products found on the page');
+      // This store only sells a bigger edition: file the price under that edition's name.
+      const onlyEdition = game.onlyEdition?.[collector.store as keyof NonNullable<TrackedGame['onlyEdition']>];
+      if (onlyEdition) {
+        for (const o of observations) if (o.edition === 'standard') o.edition = onlyEdition;
+      }
       const first = observations.find((o) => o.edition === 'standard') ?? observations[0];
       const gameId = await gameIdFor(game, first);
       const now = new Date();

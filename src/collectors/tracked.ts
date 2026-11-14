@@ -21,6 +21,10 @@ export type TrackedGame = {
   psConceptId?: string;
   eshopId?: string;
   xboxProductId?: string;
+  // When a store does not sell the plain game, only a bigger edition, name that
+  // edition here (keyed by store code). Its price is then shown for that store
+  // with the edition's name, and is kept out of "lowest price" comparisons.
+  onlyEdition?: { ps_store?: string; eshop?: string; xbox_store?: string };
   discs?: DiscSpec[];
 };
 
@@ -41,11 +45,12 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'rhythm-heaven-miracle-stars', title: '리듬 천국 미라클 스타즈', eshopId: '70010000122820' },
   { slug: 'forza-horizon-5', title: 'Forza Horizon 5', xboxProductId: '9NKX70BBCDRN',
     discs: [{ platform: 'xbox_series', query: 'XBOX 포르자 호라이즌 5', names: ['포르자 호라이즌 5', 'Forza Horizon 5'] }] },
-  { slug: 'elden-ring', title: 'ELDEN RING', psConceptId: '10000333', xboxProductId: '9P3J32CTXLRZ' },
+  { slug: 'elden-ring', title: 'ELDEN RING', psConceptId: '10000333', xboxProductId: '9P3J32CTXLRZ',
+    eshopId: '70010000097554', onlyEdition: { eshop: '빛바랜 자 에디션' } },
   // Nintendo sells separate Switch and Switch 2 versions; the Switch one is tracked.
   { slug: 'hogwarts-legacy', title: '호그와트 레거시', psConceptId: '232447', eshopId: '70010000062279', xboxProductId: '9MT5NJ5W7B8Z' },
-  // Nintendo only sells the Ultimate Edition, so it is left out.
-  { slug: 'cyberpunk-2077', title: '사이버펑크 2077', psConceptId: '234567', xboxProductId: 'BX3M8L83BBRW' },
+  { slug: 'cyberpunk-2077', title: '사이버펑크 2077', psConceptId: '234567', xboxProductId: 'BX3M8L83BBRW',
+    eshopId: '70010000095549', onlyEdition: { eshop: '얼티밋 에디션' } },
   { slug: 'monster-hunter-wilds', title: 'Monster Hunter Wilds', psConceptId: '10005176', xboxProductId: '9NMT6XFN0LVD' },
   { slug: 'baldurs-gate-3', title: '발더스 게이트 3', psConceptId: '10007460', xboxProductId: '9ND58LQTG09T' },
   { slug: 'persona-3-reload', title: '페르소나3 리로드', psConceptId: '10001555', xboxProductId: '9NKK6Z0K3RH2' },
@@ -126,8 +131,8 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'the-outer-worlds-2', title: 'The Outer Worlds 2', psConceptId: '10011796', xboxProductId: '9P8RMKXRML7D' },
   { slug: 'arc-raiders', title: 'ARC Raiders', psConceptId: '10003610', xboxProductId: '9NDF1F263RZ4' },
   { slug: 'hades-2', title: 'Hades II', psConceptId: '10018449', eshopId: '70010000103277', xboxProductId: '9PCR3Z2MSM4T' },
-  // Nintendo only sells the Complete Edition, so it is left out.
-  { slug: 'lies-of-p', title: 'P의 거짓', psConceptId: '10006052', xboxProductId: '9PCM4CMTPPGC' },
+  { slug: 'lies-of-p', title: 'P의 거짓', psConceptId: '10006052', xboxProductId: '9PCM4CMTPPGC',
+    eshopId: '70010000103581', onlyEdition: { eshop: '컴플리트 에디션' } },
   { slug: 'digimon-story-time-stranger', title: '디지몬 스토리 타임 스트레인저', psConceptId: '10011861', eshopId: '70010000084202', xboxProductId: '9P54L8DTLC55' },
   { slug: 'dragon-quest-vii-reimagined', title: '드래곤 퀘스트 VII Reimagined', psConceptId: '10008842', eshopId: '70010000090185', xboxProductId: '9N105N56MVGM' },
   { slug: 'monster-hunter-stories-3', title: '몬스터헌터 스토리즈 3 엇갈린 운명', psConceptId: '10013075', eshopId: '70010000097759', xboxProductId: '9NT1VLG29DG8' },

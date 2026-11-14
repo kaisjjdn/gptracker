@@ -83,6 +83,7 @@ async function readCatalog(): Promise<GameView[]> {
         key,
         storeName: main.storeName,
         chip: CHIP[main.product.platform],
+        edition: main.product.edition === 'standard' ? null : main.product.edition,
         url: main.listing.url,
         changes,
         sales: salePeriods(main.points),

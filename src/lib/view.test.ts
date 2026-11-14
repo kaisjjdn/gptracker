@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildChanges, lowestOverTime, salePeriods, verdict, type EventRow, type PointRow, type Series } from './view';
+import { buildChanges, comparable, lowestOverTime, salePeriods, verdict, type EventRow, type PointRow, type Series } from './view';
 
 const DAY = 86_400_000;
 const ev = (t: number, type: string, note = '', saleName: string | null = null): EventRow => ({ t, type, note, saleName, saleEndsAt: null });
@@ -49,7 +49,7 @@ test('lowest price across shops over time', () => {
 const series = (changes: Series['changes'], over: Partial<Series> = {}): Series => {
   const last = changes.at(-1)!;
   return {
-    key: 'ps', storeName: 'PS 스토어', chip: 'PS5', url: '', changes, sales: [], cur: last.price, base: last.base,
+    key: 'ps', storeName: 'PS 스토어', chip: 'PS5', edition: null, url: '', changes, sales: [], cur: last.price, base: last.base,
     member: null, low: Math.min(...changes.map((c) => c.price)), pct: 0, saleEndsAt: null, editions: [], ...over,
   };
 };
@@ -64,4 +64,11 @@ test('verdict: too little history, good time, and wait', () => {
   assert.equal(v.head, '기다려 보세요');
   assert.match(v.text, /100% 비싸요/);
   assert.match(v.sub, /50일 전/);
+});
+
+test('a bigger edition is left out of price comparisons unless nothing else is sold', () => {
+  const plain = series([step(0, 60000, 'launch')]);
+  const complete = series([step(0, 30000, 'launch')], { key: 'sw', edition: '컴플리트 에디션' });
+  assert.deepEqual(comparable([plain, complete]), [plain]);
+  assert.deepEqual(comparable([complete]), [complete]);
 });
