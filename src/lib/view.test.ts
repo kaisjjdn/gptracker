@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildChanges, comparable, lowestOverTime, salePeriods, verdict, type EventRow, type PointRow, type Series } from './view';
+import { buildChanges, comparable, lowestOverTime, salePeriods, sortGames, verdict, type GameView, type EventRow, type PointRow, type Series } from './view';
 
 const DAY = 86_400_000;
 const ev = (t: number, type: string, note = '', saleName: string | null = null): EventRow => ({ t, type, note, saleName, saleEndsAt: null });
@@ -71,4 +71,17 @@ test('a bigger edition is left out of price comparisons unless nothing else is s
   const complete = series([step(0, 30000, 'launch')], { key: 'sw', edition: '컴플리트 에디션' });
   assert.deepEqual(comparable([plain, complete]), [plain]);
   assert.deepEqual(comparable([complete]), [complete]);
+});
+
+test('sorts games by release date, price and discount', () => {
+  const game = (slug: string, releaseDate: string | null, price: number, pct: number): GameView => ({
+    slug, title: slug, genre: null, publisher: null, coverUrl: null, releaseDate, disc: null,
+    series: [series([step(0, price, 'launch')], { pct })],
+  });
+  const games = [game('old', '2020-03-20', 30000, 50), game('undated', null, 10000, 0), game('new', '2026-11-19', 89800, 0)];
+  const order = (key: Parameters<typeof sortGames>[1], dir: Parameters<typeof sortGames>[2]) => sortGames(games, key, dir).map((g) => g.slug);
+  assert.deepEqual(order('release', 'desc'), ['new', 'old', 'undated']);
+  assert.deepEqual(order('release', 'asc'), ['old', 'new', 'undated']);
+  assert.deepEqual(order('price', 'asc'), ['undated', 'old', 'new']);
+  assert.deepEqual(order('discount', 'desc'), ['old', 'undated', 'new']);
 });

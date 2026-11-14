@@ -4,6 +4,7 @@
 // https://store.nintendo.co.kr/<nsuid>. The price, regular price and sale
 // period are in the page's HTML. Korea has its own store site, so this
 // collector is Korea-only; other regions will need their own.
+import { releaseDay } from '../types';
 import type { Observation, Platform, SaleInfo } from '../types';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; GPtracker/0.1; price history)';
@@ -34,6 +35,13 @@ function kstDate(text: string | undefined): Date | null {
   if (!m) return null;
   const [, y, mo, d, h, mi] = m;
   return new Date(`${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}T${h.padStart(2, '0')}:${mi}:00+09:00`);
+}
+
+// "발매일 2023/5/12" from the product details, as YYYY-MM-DD.
+export function releaseDateFromPage(html: string): string | null {
+  const m = html.match(/class="product-attribute release_date[^>]*>[\s\S]{0,200}?class="product-attribute-val">\s*(\d{4})\/(\d{1,2})\/(\d{1,2})\s*</);
+  if (!m) return null;
+  return releaseDay(new Date(`${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}T12:00:00+09:00`));
 }
 
 // The product's main picture, from the image gallery data embedded in the page.
@@ -96,6 +104,7 @@ export function parseNintendoPage(html: string, nsuid: string, opts: { currency:
       genre: attribute(html, 'game_category')[0] ?? null,
       price: { basePrice: onSale ? oldPrice : finalPrice, salePrice: onSale ? finalPrice : null, memberPrice: null },
       sale,
+      releaseDate: releaseDateFromPage(html),
     },
   ];
 }

@@ -31,4 +31,16 @@ export type Observation = {
   sale: SaleInfo | null;
   format?: 'digital' | 'disc'; // default 'digital'
   sellerName?: string | null; // the shop behind a retail offer
+  releaseDate?: string | null; // YYYY-MM-DD, as the store states it
 };
+
+// A store's release date as YYYY-MM-DD in the given time zone, or null when it
+// is missing or a placeholder (stores use far-future dates for "to be announced").
+export function releaseDay(value: string | Date | null | undefined, timeZone = 'Asia/Seoul'): string | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const day = new Intl.DateTimeFormat('sv-SE', { timeZone }).format(date);
+  const year = Number(day.slice(0, 4));
+  return year >= 1980 && year < 2100 ? day : null;
+}

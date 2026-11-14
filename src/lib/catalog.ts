@@ -129,7 +129,7 @@ async function readCatalog(): Promise<GameView[]> {
     }
 
     if (series.length > 0) {
-      views.push({ slug: game.slug, title: game.title, genre: game.genre, publisher: game.publisher, coverUrl: game.coverUrl, series, disc });
+      views.push({ slug: game.slug, title: game.title, genre: game.genre, publisher: game.publisher, coverUrl: game.coverUrl, releaseDate: game.releaseDate, series, disc });
     }
   }
   return views;

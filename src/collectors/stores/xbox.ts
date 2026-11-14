@@ -3,7 +3,7 @@
 // Reads the public game page, https://www.xbox.com/<locale>/games/store/-/<productId>,
 // which robots.txt allows. The page embeds its data as JSON in
 // window.__PRELOADED_STATE__, including every edition of the game.
-import type { Observation, Platform, SaleInfo } from '../types';
+import { releaseDay, type Observation, type Platform, type SaleInfo } from '../types';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; GPtracker/0.1; price history)';
 
@@ -94,6 +94,7 @@ export function observationsFromState(
       genre: product.categories?.[0] ?? null,
       price: { basePrice, salePrice, memberPrice },
       sale,
+      releaseDate: releaseDay(product.releaseDate),
     });
   }
   return observations;

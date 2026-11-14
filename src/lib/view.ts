@@ -38,6 +38,7 @@ export type GameView = {
   genre: string | null;
   publisher: string | null;
   coverUrl: string | null;
+  releaseDate: string | null; // YYYY-MM-DD
   series: Series[];
   disc: DiscView | null;
 };
@@ -118,6 +119,27 @@ export const atLow = (s: Series) => s.changes.length > 1 && s.cur <= s.low;
 export function comparable(series: Series[]): Series[] {
   const plain = series.filter((s) => s.edition === null);
   return plain.length > 0 ? plain : series;
+}
+
+export type SortKey = 'release' | 'price' | 'discount';
+export type SortDir = 'asc' | 'desc';
+// The direction each sort starts in: newest first, cheapest first, biggest discount first.
+export const SORT_DEFAULT: Record<SortKey, SortDir> = { release: 'desc', price: 'asc', discount: 'desc' };
+
+// Order games for the grid. Price and discount follow the stores selling the
+// plain game; games without a release date always go last.
+export function sortGames(games: GameView[], key: SortKey, dir: SortDir): GameView[] {
+  const sign = dir === 'asc' ? 1 : -1;
+  const price = (g: GameView) => Math.min(...comparable(g.series).map((s) => s.cur));
+  const discount = (g: GameView) => Math.max(...comparable(g.series).map((s) => s.pct));
+  return [...games].sort((a, b) => {
+    if (key === 'release') {
+      if (!a.releaseDate || !b.releaseDate) return Number(!a.releaseDate) - Number(!b.releaseDate);
+      return sign * a.releaseDate.localeCompare(b.releaseDate);
+    }
+    const value = key === 'price' ? price : discount;
+    return sign * (value(a) - value(b)) || price(a) - price(b);
+  });
 }
 
 export type Verdict = { tone: 'good' | 'wait' | 'ok'; head: string; text: string; sub: string };

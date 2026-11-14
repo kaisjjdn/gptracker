@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { coverFromPage, parseNintendoPage } from './nintendo';
+import { coverFromPage, parseNintendoPage, releaseDateFromPage } from './nintendo';
 
 const fixture = (name: string) => readFileSync(new URL(`./fixtures/${name}.html`, import.meta.url), 'utf8');
 const opts = { currency: 'KRW' };
@@ -47,4 +47,13 @@ test('takes the main gallery picture as the cover', () => {
     String.raw`{"thumb":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/aa\/b\/6\/main.jpg","img":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/bb\/b\/6\/main.jpg","full":"https:\/\/store.nintendo.co.kr\/media\/catalog\/product\/cache\/cc\/b\/6\/main.jpg","caption":"main.jpg","position":"1","isMain":true,"type":"image"}]`;
   assert.equal(coverFromPage(gallery), 'https://store.nintendo.co.kr/media/catalog/product/cache/bb/b/6/main.jpg');
   assert.equal(coverFromPage('<html></html>'), null);
+});
+
+test('reads the release date from the product details', () => {
+  const html = `<div class="product-attribute release_date">
+    <div class="product-attribute-title">발매일</div>
+    <div class="product-attribute-val">2023/5/12</div>
+  </div>`;
+  assert.equal(releaseDateFromPage(html), '2023-05-12');
+  assert.equal(releaseDateFromPage('<html></html>'), null);
 });

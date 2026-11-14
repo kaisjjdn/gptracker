@@ -64,6 +64,12 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
         <div>
           <h1>{game.title}</h1>
           <p>{[game.genre, game.publisher].filter(Boolean).join(', ')}</p>
+          {game.releaseDate && (
+            <p>
+              {new Date(`${game.releaseDate}T00:00:00+09:00`).getTime() > now ? '출시 예정 ' : '출시 '}
+              {game.releaseDate.replaceAll('-', '.')}
+            </p>
+          )}
         </div>
       </div>
 

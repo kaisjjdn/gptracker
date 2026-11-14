@@ -14,6 +14,9 @@ fi
 git pull -q --ff-only || echo "git pull failed; using the current copy"
 npm install --silent --no-audit --no-fund || exit 1
 
+# Bring the database tables up to date with the code just pulled.
+node --env-file=.env.collect --import tsx src/db/migrate.ts || echo "migration failed; trying to collect anyway"
+
 # The network may not be up yet right after the Mac wakes: try a few times.
 for attempt in 1 2 3; do
   node --env-file=.env.collect --import tsx src/collectors/run.ts eshop && exit 0

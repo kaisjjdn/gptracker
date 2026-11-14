@@ -84,3 +84,11 @@ test('fails loudly when the page no longer contains the game', () => {
 test('rejects prices in an unexpected currency', () => {
   assert.throws(() => parseConceptPage(html, '10002684', { locale: 'en-us', currency: 'USD' }), /priced in KRW/);
 });
+
+test('release dates are given in Korean time, and placeholders are dropped', async () => {
+  const { releaseDay } = await import('../types');
+  assert.equal(releaseDay('2024-09-05T15:00:00Z'), '2024-09-06');
+  assert.equal(releaseDay('9998-12-30T00:00:00Z'), null);
+  assert.equal(releaseDay(undefined), null);
+  assert.equal(releaseDay('not a date'), null);
+});

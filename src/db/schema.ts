@@ -1,5 +1,6 @@
 import {
   boolean,
+  date,
   index,
   integer,
   pgEnum,
@@ -57,6 +58,7 @@ export const games = pgTable('games', {
   genre: text('genre'),
   publisher: text('publisher'),
   coverUrl: text('cover_url'),
+  releaseDate: date('release_date'), // earliest release the stores state, YYYY-MM-DD
   createdAt: ts('created_at').notNull().defaultNow(),
 });
 

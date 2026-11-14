@@ -3,6 +3,7 @@
 // Reads the public game page (store.playstation.com/<locale>/concept/<id>),
 // which robots.txt allows and which embeds its data as JSON in
 // <script id="env:..."> tags. One request returns every edition of a game.
+import { releaseDay } from '../types';
 import type { Observation, Platform, SaleInfo } from '../types';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; GPtracker/0.1; price history)';
@@ -129,6 +130,7 @@ export function observationsFromCache(
       genre: product.localizedGenres?.[0]?.value ?? null,
       price: { basePrice, salePrice, memberPrice },
       sale,
+      releaseDate: releaseDay(product.releaseDate),
     });
   }
   return observations;

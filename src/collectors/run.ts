@@ -83,6 +83,7 @@ async function gameIdFor(game: TrackedGame, seen: Observation) {
         coverUrl: seen.coverUrl,
         publisher: seen.publisher,
         genre: seen.genre,
+        releaseDate: seen.releaseDate ?? null,
       })
       .returning();
     return created.id;
@@ -94,6 +95,13 @@ async function gameIdFor(game: TrackedGame, seen: Observation) {
       coverUrl: existing.coverUrl ?? seen.coverUrl,
       publisher: existing.publisher ?? seen.publisher,
       genre: existing.genre ?? seen.genre,
+      // Stores can differ (a later port, a re-release): keep the earliest.
+      releaseDate:
+        existing.releaseDate && seen.releaseDate
+          ? existing.releaseDate < seen.releaseDate
+            ? existing.releaseDate
+            : seen.releaseDate
+          : (existing.releaseDate ?? seen.releaseDate ?? null),
     })
     .where(eq(s.games.id, existing.id));
   return existing.id;
