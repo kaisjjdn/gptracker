@@ -3,7 +3,7 @@
 // Reads the public game page (store.playstation.com/<locale>/concept/<id>),
 // which robots.txt allows and which embeds its data as JSON in
 // <script id="env:..."> tags. One request returns every edition of a game.
-import { releaseDay } from '../types';
+import { nameContains, releaseDay } from '../types';
 import type { Observation, Platform, SaleInfo } from '../types';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; GPtracker/0.1; price history)';
@@ -32,13 +32,26 @@ export function extractCache(html: string): Json {
 const coverOf = (entity: Json | undefined): string | null =>
   entity?.media?.find((m: Json) => m.role === 'MASTER' && m.type === 'IMAGE')?.url ?? null;
 
+// Does this product have Korean text? The page lists screen languages for newer
+// products; older ones only say so in the name: "... (한국어판)" or a language list
+// in brackets at the end, "... (중국어(간체자), 한국어, 영어)".
+export function koreanOf(product: Json): boolean | null {
+  const screen: string[] = product.screenLanguages ?? [];
+  if (screen.length > 0) return screen.includes('ko');
+  const name: string = product.name ?? '';
+  if (/한국어/.test(name)) return true;
+  // A bracketed list of languages that leaves Korean out.
+  if (/\((?:[^()]|\([^()]*\))*(영어|일본어|중국어)(?:[^()]|\([^()]*\))*\)\s*$/.test(name)) return false;
+  return null;
+}
+
 // Words in a product name that mark a bigger edition, for pages that don't label it.
 const BIGGER_EDITION = /디럭스|deluxe|얼티밋|ultimate|프리미엄|premium|컴플리트|complete|골드 에디션|gold edition|gourmet|번들|bundle|collector|볼트 에디션|vault edition/i;
 
 export function observationsFromCache(
   cache: Json,
   conceptId: string,
-  opts: { locale: string; currency: string },
+  opts: { locale: string; currency: string; match?: string },
 ): Observation[] {
   const concept = cache[`Concept:${conceptId}`];
   if (!concept) {
@@ -49,7 +62,8 @@ export function observationsFromCache(
 
   const products: Json[] = (concept.products ?? [])
     .map((ref: Json) => cache[ref.__ref])
-    .filter((p: Json | undefined) => p?.id && p.topCategory === 'GAME'); // drops demos
+    .filter((p: Json | undefined) => p?.id && p.topCategory === 'GAME') // drops demos
+    .filter((p: Json) => nameContains(p.name, opts.match)); // on a shared page, this game's products only
 
   // Every purchase button of a product, with its price breakdown. An offer that
   // discounts to zero is "included with a subscription", not a price.
@@ -62,21 +76,40 @@ export function observationsFromCache(
         .map((detail: Json) => ({ detail, local: cta.local as Json }));
     });
 
-  // A game page can list several "standard" products (the game itself, an
-  // online-only version, a two-game pack, a deluxe edition the store did not
-  // label as one). Only one is the game's standard edition: among the priced
-  // ones, preferring those whose name doesn't say they are a bigger edition, the
-  // page's default product, else the full game.
-  // Older pages mark every edition as "OTHER"; then all priced products compete.
+  // Which product is the game itself? Pages disagree on how they label things
+  // (older ones mark everything "OTHER", some mark even the standard edition
+  // "PREMIUM"), so several signals are weighed:
+  //  1. the page's own default product, unless it is plainly a bigger edition;
+  //  2. otherwise a priced product that is not a bigger edition;
+  //  3. otherwise (every product looks bigger) the one called "Standard", else
+  //     the default.
   const priced = products.filter((p) => offersOf(p).length > 0);
-  const labelled = priced.filter((p) => !p.edition?.type || p.edition.type === 'STANDARD');
-  const standards = labelled.length > 0 ? labelled : priced.filter((p) => p.edition?.type === 'OTHER');
-  const plain = standards.filter((p) => !BIGGER_EDITION.test(p.name ?? ''));
-  const pool = plain.length > 0 ? plain : standards;
+  // By its own label or name, a bigger edition (deluxe, ultimate, ...).
+  const namedBigger = (p: Json) =>
+    !['STANDARD', 'OTHER', undefined, null].includes(p.edition?.type) || BIGGER_EDITION.test(p.name ?? '');
+  // Also counts how the store files it. Not applied to the page's default
+  // product: a remaster or director's cut is often filed as a "bundle" and is
+  // still the game the page is about.
+  const isBigger = (p: Json) =>
+    namedBigger(p) || ['GAME_BUNDLE', 'PREMIUM_EDITION'].includes(p.storeDisplayClassification);
+  const isDefault = (p: Json) => `Product:${p.id}` === concept.defaultProduct?.__ref;
+  const saysStandard = (p: Json) => /standard|스탠다드|일반판/i.test(p.edition?.name ?? '');
+  const plain = priced.filter((p) => !isBigger(p));
+  const firstChoice =
+    priced.find((p) => isDefault(p) && !namedBigger(p)) ??
+    plain.find((p) => p.edition?.type !== 'OTHER' && p.storeDisplayClassification === 'FULL_GAME') ??
+    plain.find((p) => p.storeDisplayClassification === 'FULL_GAME') ??
+    plain[0] ??
+    priced.find((p) => isDefault(p) && saysStandard(p)) ??
+    priced.find(saysStandard) ??
+    priced.find(isDefault) ??
+    priced[0];
+  // Some games are sold as separate products per language. On the Korean
+  // store, the Korean-language one is the one to follow.
   const standard =
-    pool.find((p) => `Product:${p.id}` === concept.defaultProduct?.__ref) ??
-    pool.find((p) => p.storeDisplayClassification === 'FULL_GAME') ??
-    pool[0];
+    firstChoice && koreanOf(firstChoice) === false
+      ? (plain.find((p) => koreanOf(p) === true) ?? firstChoice)
+      : firstChoice;
   // Product names end with a language list, "(중국어(간체자), 한국어, 영어)": cut that
   // trailing group, minding the nested parentheses.
   const withoutLanguages = (name: string) => {
@@ -127,11 +160,14 @@ export function observationsFromCache(
     const platform = PLATFORM[platformKey];
     if (!platform) continue; // not a console game (e.g. PC)
 
-    const isOtherStandard = standards.includes(product) && product !== standard;
+    // Other products go by their edition name. One that also calls itself
+    // "standard" (an online-only version, the last-generation copy) would be
+    // indistinguishable that way, so it goes by its product name instead.
     const edition =
       product === standard
         ? 'standard'
-        : (!isOtherStandard && product.edition?.name) || withoutLanguages(product.name ?? product.id);
+        : (!saysStandard(product) && isBigger(product) && product.edition?.name) ||
+          withoutLanguages(product.name ?? product.id);
     observations.push({
       storeProductId: product.id,
       title: product.name ?? concept.name,
@@ -144,6 +180,7 @@ export function observationsFromCache(
       price: { basePrice, salePrice, memberPrice },
       sale,
       releaseDate: releaseDay(product.releaseDate),
+      korean: koreanOf(product),
     });
   }
   return observations;
@@ -152,20 +189,28 @@ export function observationsFromCache(
 export function parseConceptPage(
   html: string,
   conceptId: string,
-  opts: { locale: string; currency: string },
+  opts: { locale: string; currency: string; match?: string },
 ): Observation[] {
   return observationsFromCache(extractCache(html), conceptId, opts);
 }
 
 export async function collectPlayStation(
   conceptId: string,
-  opts: { locale: string; currency: string },
+  opts: { locale: string; currency: string; match?: string },
 ): Promise<Observation[]> {
   const url = `https://store.playstation.com/${opts.locale}/concept/${conceptId}`;
-  const res = await fetch(url, {
-    headers: { 'user-agent': USER_AGENT, 'accept-language': opts.locale },
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!res.ok) throw new Error(`PS Store: ${url} responded ${res.status}`);
-  return parseConceptPage(await res.text(), conceptId, opts);
+  // Now and then the store answers with an empty shell of the page (no title,
+  // no data), and the full page a moment later. Ask up to three times.
+  let html = '';
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const res = await fetch(url, {
+      headers: { 'user-agent': USER_AGENT, 'accept-language': opts.locale },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) throw new Error(`PS Store: ${url} responded ${res.status}`);
+    html = await res.text();
+    if (html.includes(`Concept:${conceptId}`)) break;
+    if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
+  return parseConceptPage(html, conceptId, opts);
 }

@@ -49,20 +49,29 @@ export async function recordObservation(db: Db, ctx: RecordContext, obs: Observa
           storeProductId: obs.storeProductId,
           url: obs.url,
           sellerName: obs.sellerName ?? null,
+          korean: obs.korean ?? null,
           firstSeenAt: ctx.now,
         })
         .returning();
     }
     if (listing.productId !== product.id) {
-      // The same store item is already recorded under another product, usually
-      // because one game's page lists another tracked game as an edition.
-      // Recording it twice would make its price flip between two readings.
+      // The same store item is already recorded under another product.
       const [owner] = await tx.select().from(s.products).where(eq(s.products.id, listing.productId));
-      if (owner && owner.gameId !== ctx.gameId) return [];
+      if (owner && owner.gameId !== ctx.gameId) {
+        // Under another game, usually because that game's page lists this one as
+        // an edition. While that game still shows it, leave it there: recording
+        // it twice would make its price flip between two readings. Once that
+        // game has let go of it, it moves here with its history.
+        if (listing.isActive) return [];
+      }
+      // Same game, filed under a different edition name than before (the page
+      // relabelled it, or the rules for naming editions changed): the listing
+      // and its history follow the new name.
+      await tx.update(s.listings).set({ productId: product.id }).where(eq(s.listings.id, listing.id));
     }
     await tx
       .update(s.listings)
-      .set({ lastCheckedAt: ctx.now, url: obs.url, sellerName: obs.sellerName ?? listing.sellerName, isActive: true })
+      .set({ lastCheckedAt: ctx.now, url: obs.url, sellerName: obs.sellerName ?? listing.sellerName, korean: obs.korean ?? listing.korean, isActive: true })
       .where(eq(s.listings.id, listing.id));
 
     const [last] = await tx
@@ -170,6 +179,34 @@ export async function deactivateMissingDiscListings(
         eq(s.listings.regionId, key.regionId),
         inArray(s.listings.productId, products.map((p) => p.id)),
         seenStoreProductIds.length > 0 ? notInArray(s.listings.storeProductId, seenStoreProductIds) : undefined,
+      ),
+    );
+}
+
+// After reading a game's page on a digital store: listings of that game on that
+// store which the page did not return are no longer offered (an edition was
+// withdrawn, or the tracked list now leaves it to another game). Mark them
+// inactive so they stop being shown; their price history is kept.
+export async function deactivateMissingListings(
+  db: Db,
+  key: { storeId: number; regionId: number; gameId: number },
+  seenStoreProductIds: string[],
+): Promise<void> {
+  if (seenStoreProductIds.length === 0) return; // an empty read is a failed read, not a withdrawal
+  const products = await db
+    .select({ id: s.products.id })
+    .from(s.products)
+    .where(and(eq(s.products.gameId, key.gameId), eq(s.products.format, 'digital')));
+  if (products.length === 0) return;
+  await db
+    .update(s.listings)
+    .set({ isActive: false })
+    .where(
+      and(
+        eq(s.listings.storeId, key.storeId),
+        eq(s.listings.regionId, key.regionId),
+        inArray(s.listings.productId, products.map((p) => p.id)),
+        notInArray(s.listings.storeProductId, seenStoreProductIds),
       ),
     );
 }

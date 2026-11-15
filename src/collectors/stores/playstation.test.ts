@@ -113,3 +113,37 @@ test('a deluxe edition the page does not label is not taken as the standard edit
   assert.equal(standard.price.basePrice, 64800);
   assert.equal(observations.find((o) => o.storeProductId === 'DLX')!.edition, 'DARK SOULS™ III - 디럭스 에디션');
 });
+
+test('on a page shared by several games, only the matching products are taken', async () => {
+  const { observationsFromCache } = await import('./playstation');
+  const cta = (id: string, price: number) => ({
+    local: { telemetryMeta: { skuDetail: { skuId: `${id}-SKU`, skuPriceDetail: [{ originalPriceValue: price, discountPriceValue: price, priceCurrencyCode: 'KRW', offerIsTiedToSubscription: false, offerBranding: 'NONE' }] } } },
+  });
+  const product = (id: string, name: string, type: string) => ({ id, name, topCategory: 'GAME', platforms: ['PS5'], storeDisplayClassification: 'FULL_GAME', edition: { name: '', type } });
+  const cache = {
+    'Concept:9': { name: '콜 오브 듀티®', defaultProduct: { __ref: 'Product:MW4' }, products: ['MW4', 'MW4V', 'BO7'].map((id) => ({ __ref: `Product:${id}` })) },
+    'Product:MW4': product('MW4', '콜 오브 듀티®: 모던 워페어 4', 'STANDARD'),
+    'Product:MW4V': product('MW4V', '콜 오브 듀티®: 모던 워페어 4 - 볼트 에디션', 'PREMIUM'),
+    'Product:BO7': product('BO7', '콜 오브 듀티®: 블랙 옵스 7 - 세대 호환 번들', 'STANDARD'),
+    'GameCTA:a': cta('MW4', 88900),
+    'GameCTA:b': cta('MW4V', 121900),
+    'GameCTA:c': cta('BO7', 88900),
+  };
+  const opts = { locale: 'ko-kr', currency: 'KRW' };
+  const mw4 = observationsFromCache(cache, '9', { ...opts, match: '모던 워페어 4' });
+  assert.deepEqual(mw4.map((o) => o.storeProductId).sort(), ['MW4', 'MW4V']);
+  assert.equal(mw4.find((o) => o.edition === 'standard')!.storeProductId, 'MW4');
+  const bo7 = observationsFromCache(cache, '9', { ...opts, match: '블랙 옵스 7' });
+  assert.deepEqual(bo7.map((o) => [o.storeProductId, o.edition]), [['BO7', 'standard']]);
+});
+
+test('Korean support comes from the screen languages, else from the product name', async () => {
+  const { koreanOf } = await import('./playstation');
+  assert.equal(koreanOf({ screenLanguages: ['en', 'ko', 'ja'] }), true);
+  assert.equal(koreanOf({ screenLanguages: ['en', 'ja'] }), false);
+  assert.equal(koreanOf({ screenLanguages: [], name: 'DARK SOULS™ III (한국어판)' }), true);
+  assert.equal(koreanOf({ screenLanguages: [], name: 'Overcooked! 2 (중국어(간체자), 한국어, 영어, 일본어)' }), true);
+  assert.equal(koreanOf({ screenLanguages: [], name: '발더스 게이트 3 (중국어(간체자), 영어, 일본어, 중국어(번체자))' }), false);
+  assert.equal(koreanOf({ screenLanguages: [], name: 'Enter the Gungeon (게임)' }), null);
+  assert.equal(koreanOf({ name: 'ASTRO BOT' }), null);
+});

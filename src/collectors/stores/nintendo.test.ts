@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { coverFromPage, parseNintendoPage, releaseDateFromPage } from './nintendo';
+import { coverFromPage, koreanFromPage, parseNintendoPage, releaseDateFromPage } from './nintendo';
 
 const fixture = (name: string) => readFileSync(new URL(`./fixtures/${name}.html`, import.meta.url), 'utf8');
 const opts = { currency: 'KRW' };
@@ -56,4 +56,14 @@ test('reads the release date from the product details', () => {
   </div>`;
   assert.equal(releaseDateFromPage(html), '2023-05-12');
   assert.equal(releaseDateFromPage('<html></html>'), null);
+});
+
+test('Korean support comes from the supported languages entry', () => {
+  const page = (langs: string) => `<div class="product-attribute supported_languages ">
+    <div class="product-attribute-title">대응언어</div>
+    <div class="product-attribute-val"><div class="attribute-item-val"> ${langs} </div></div></div>
+    <div class="product-attribute publisher "></div>`;
+  assert.equal(koreanFromPage(page('한국어, 영어, 일본어')), true);
+  assert.equal(koreanFromPage(page('영어, 일본어')), false);
+  assert.equal(koreanFromPage('<html></html>'), null);
 });

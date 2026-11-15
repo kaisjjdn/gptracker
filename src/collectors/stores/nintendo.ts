@@ -44,6 +44,12 @@ export function releaseDateFromPage(html: string): string | null {
   return releaseDay(new Date(`${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}T12:00:00+09:00`));
 }
 
+// Whether "대응언어" (supported languages) lists Korean; null when the page has no such entry.
+export function koreanFromPage(html: string): boolean | null {
+  const languages = attribute(html, 'supported_languages').join(', ');
+  return languages ? languages.includes('한국어') : null;
+}
+
 // The product's main picture, from the image gallery data embedded in the page.
 export function coverFromPage(html: string): string | null {
   const entries = [...html.matchAll(/\{"thumb":"[^"]*","img":"([^"]+)"[^{}]*?"isMain":(true|false)/g)];
@@ -105,6 +111,7 @@ export function parseNintendoPage(html: string, nsuid: string, opts: { currency:
       price: { basePrice: onSale ? oldPrice : finalPrice, salePrice: onSale ? finalPrice : null, memberPrice: null },
       sale,
       releaseDate: releaseDateFromPage(html),
+      korean: koreanFromPage(html),
     },
   ];
 }

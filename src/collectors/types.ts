@@ -32,7 +32,17 @@ export type Observation = {
   format?: 'digital' | 'disc'; // default 'digital'
   sellerName?: string | null; // the shop behind a retail offer
   releaseDate?: string | null; // YYYY-MM-DD, as the store states it
+  korean?: boolean | null; // Korean text (interface or subtitles); null when the store does not say
 };
+
+// Does a store's product name contain this text? Trademark signs and case are
+// ignored. Used when a store page mixes several games and only some of its
+// products belong to the game being tracked.
+export function nameContains(name: string | undefined, text: string | undefined): boolean {
+  if (!text) return true;
+  const plain = (s: string) => s.replace(/[®™]/g, '').toLowerCase();
+  return plain(name ?? '').includes(plain(text));
+}
 
 // A store's release date as YYYY-MM-DD in the given time zone, or null when it
 // is missing or a placeholder (stores use far-future dates for "to be announced").

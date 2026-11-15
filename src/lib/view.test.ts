@@ -50,7 +50,7 @@ const series = (changes: Series['changes'], over: Partial<Series> = {}): Series 
   const last = changes.at(-1)!;
   return {
     key: 'ps', storeName: 'PS 스토어', chip: 'PS5', edition: null, url: '', changes, sales: [], cur: last.price, base: last.base,
-    member: null, low: Math.min(...changes.map((c) => c.price)), pct: 0, saleEndsAt: null, editions: [], ...over,
+    member: null, korean: null, low: Math.min(...changes.map((c) => c.price)), pct: 0, saleEndsAt: null, editions: [], ...over,
   };
 };
 const step = (day: number, price: number, kind: Series['changes'][number]['kind']) => ({ t: day * DAY, price, base: 60000, kind, label: '', note: '' });

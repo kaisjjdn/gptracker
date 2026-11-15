@@ -4,6 +4,7 @@
 // while the list is hand-picked. Past a few thousand listings this should
 // become per-game queries.
 import { asc, eq } from 'drizzle-orm';
+import { TRACKED } from '@/collectors/tracked';
 import { db } from '@/db';
 import * as s from '@/db/schema';
 import {
@@ -27,6 +28,9 @@ const PLATFORMS = ['ps5', 'ps4', 'switch2', 'switch', 'xbox_series', 'xbox_one']
 const CHIP: Record<string, string> = {
   ps5: 'PS5', ps4: 'PS4', switch2: 'Switch 2', switch: 'Switch', xbox_series: 'Xbox', xbox_one: 'Xbox One',
 };
+
+const FAMILY_STORE = { ps: 'ps_store', sw: 'eshop', xb: 'xbox_store' } as const;
+const onlyEditionOf = new Map(TRACKED.map((g) => [g.slug, g.onlyEdition]));
 
 async function readCatalog(): Promise<GameView[]> {
   // One query at a time, on purpose. With this driver and a pooled Postgres
@@ -67,11 +71,14 @@ async function readCatalog(): Promise<GameView[]> {
 
     const series: Series[] = [];
     for (const key of FAMILY_ORDER) {
+      // Where a store only sells a bigger edition, that edition stands in for the plain game.
+      const onlyEdition = onlyEditionOf.get(game.slug)?.[FAMILY_STORE[key]];
       const inStore = mine
         .filter((l) => l.product.format === 'digital' && STORE_FAMILY[l.storeCode] === key && l.listing.isActive)
         .sort(
           (a, b) =>
             Number(b.product.edition === 'standard') - Number(a.product.edition === 'standard') ||
+            Number(b.product.edition === onlyEdition) - Number(a.product.edition === onlyEdition) ||
             PLATFORMS.indexOf(a.product.platform) - PLATFORMS.indexOf(b.product.platform),
         );
       const main = inStore[0];
@@ -92,6 +99,7 @@ async function readCatalog(): Promise<GameView[]> {
           low: Math.min(...changes.map((c) => c.price)),
           pct: cur < last.base ? Math.round((1 - cur / last.base) * 100) : 0,
           saleEndsAt: last.sale === null ? null : (evs.findLast((e) => e.saleEndsAt !== null)?.saleEndsAt ?? null),
+          korean: l.listing.korean,
         };
       };
       series.push({

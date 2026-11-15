@@ -18,6 +18,7 @@ export type Track = {
   low: number;
   pct: number; // current discount off the regular price
   saleEndsAt: number | null;
+  korean: boolean | null; // Korean text supported; null when the store does not say
 };
 
 // A store's view of a game: the plain game's history, plus that of every other

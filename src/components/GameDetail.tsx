@@ -136,6 +136,9 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
             </div>
           )}
           <div className="big num">{won(t.cur)}</div>
+          {t.korean !== null && (
+            <div className={`lang ${t.korean ? 'yes' : 'no'}`}>{t.korean ? '한국어 지원' : '한국어 미지원'}</div>
+          )}
           {t.member !== null && (
             <div className="member">
               {MEMBER_LABEL[s.key]} <b>{won(t.member)}</b>

@@ -3,7 +3,7 @@
 // Reads the public game page, https://www.xbox.com/<locale>/games/store/-/<productId>,
 // which robots.txt allows. The page embeds its data as JSON in
 // window.__PRELOADED_STATE__, including every edition of the game.
-import { releaseDay, type Observation, type Platform, type SaleInfo } from '../types';
+import { nameContains, releaseDay, type Observation, type Platform, type SaleInfo } from '../types';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; GPtracker/0.1; price history)';
 
@@ -36,10 +36,19 @@ function utcDate(text: string | undefined): Date | null {
   return m ? new Date(`${m[3]}-${m[1]}-${m[2]}T${m[4]}Z`) : null;
 }
 
+// Korean interface, subtitles or audio, from the product's language table;
+// null when the table is empty.
+export function koreanOf(product: Json): boolean | null {
+  const table: Json = product.languagesSupported ?? {};
+  if (Object.keys(table).length === 0) return null;
+  const ko = table['ko-KR'] ?? table.ko;
+  return !!ko && (ko.isInterfaceSupported || ko.areSubtitlesSupported || ko.isAudioSupported) === true;
+}
+
 export function observationsFromState(
   state: Json,
   productId: string,
-  opts: { locale: string; currency: string },
+  opts: { locale: string; currency: string; match?: string },
 ): Observation[] {
   const summaries: Json = state.core2?.products?.productSummaries ?? {};
   const main = summaries[productId];
@@ -52,6 +61,12 @@ export function observationsFromState(
   for (const id of ids) {
     const product = summaries[id];
     if (!product || product.productKind !== 'Game') continue;
+    if (id !== productId) {
+      // Listed alongside the game, but not an edition of it: another game sold
+      // from the same page, or an upgrade for people who already own the game.
+      if (!nameContains(product.title, opts.match)) continue;
+      if (/업그레이드|upgrade/i.test(product.title ?? '')) continue;
+    }
 
     const platform: Platform | null = product.availableOn?.includes('XboxSeriesX')
       ? 'xbox_series'
@@ -95,12 +110,13 @@ export function observationsFromState(
       price: { basePrice, salePrice, memberPrice },
       sale,
       releaseDate: releaseDay(product.releaseDate),
+      korean: koreanOf(product),
     });
   }
   return observations;
 }
 
-export async function collectXbox(productId: string, opts: { locale: string; currency: string }): Promise<Observation[]> {
+export async function collectXbox(productId: string, opts: { locale: string; currency: string; match?: string }): Promise<Observation[]> {
   const url = `https://www.xbox.com/${opts.locale}/games/store/-/${productId}`;
   const res = await fetch(url, { headers: { 'user-agent': USER_AGENT }, signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`Xbox Store: ${url} responded ${res.status}`);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { extractState, observationsFromState } from './xbox';
+import { extractState, koreanOf, observationsFromState } from './xbox';
 
 const html = readFileSync(new URL('./fixtures/xbox-product.html', import.meta.url), 'utf8');
 const opts = { locale: 'ko-KR', currency: 'KRW' };
@@ -40,4 +40,14 @@ test('rejects prices in an unexpected currency', () => {
     () => observationsFromState(extractState(html), '9NKX70BBCDRN', { locale: 'en-US', currency: 'USD' }),
     /priced in KRW/,
   );
+});
+
+test('Korean support comes from the language table', () => {
+  const row = (ui: boolean, subs = false, audio = false) => ({ isInterfaceSupported: ui, areSubtitlesSupported: subs, isAudioSupported: audio });
+  assert.equal(koreanOf({ languagesSupported: { 'ko-KR': row(true), 'en-US': row(true) } }), true);
+  assert.equal(koreanOf({ languagesSupported: { 'ko-KR': row(false, true), 'en-US': row(true) } }), true);
+  assert.equal(koreanOf({ languagesSupported: { 'ko-KR': row(false), 'en-US': row(true) } }), false);
+  assert.equal(koreanOf({ languagesSupported: { 'en-US': row(true) } }), false);
+  assert.equal(koreanOf({ languagesSupported: {} }), null);
+  assert.equal(koreanOf({}), null);
 });
