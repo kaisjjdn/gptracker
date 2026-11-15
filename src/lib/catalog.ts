@@ -16,6 +16,7 @@ import {
   type GameView,
   type PointRow,
   type Series,
+  type Track,
 } from './view';
 
 const REGION = 'KR';
@@ -75,29 +76,37 @@ async function readCatalog(): Promise<GameView[]> {
         );
       const main = inStore[0];
       if (!main) continue;
-      const evs = eventsOf.get(main.listing.id) ?? [];
-      const changes = buildChanges(main.points, evs);
-      const last = main.points.at(-1)!;
-      const cur = last.sale ?? last.base;
+      // The full price history of one listing.
+      const trackOf = (l: (typeof inStore)[number]): Track => {
+        const evs = eventsOf.get(l.listing.id) ?? [];
+        const changes = buildChanges(l.points, evs);
+        const last = l.points.at(-1)!;
+        const cur = last.sale ?? last.base;
+        return {
+          url: l.listing.url,
+          changes,
+          sales: salePeriods(l.points),
+          cur,
+          base: last.base,
+          member: last.member,
+          low: Math.min(...changes.map((c) => c.price)),
+          pct: cur < last.base ? Math.round((1 - cur / last.base) * 100) : 0,
+          saleEndsAt: last.sale === null ? null : (evs.findLast((e) => e.saleEndsAt !== null)?.saleEndsAt ?? null),
+        };
+      };
       series.push({
+        ...trackOf(main),
         key,
         storeName: main.storeName,
         chip: CHIP[main.product.platform],
         edition: main.product.edition === 'standard' ? null : main.product.edition,
-        url: main.listing.url,
-        changes,
-        sales: salePeriods(main.points),
-        cur,
-        base: last.base,
-        member: last.member,
-        low: Math.min(...changes.map((c) => c.price)),
-        pct: cur < last.base ? Math.round((1 - cur / last.base) * 100) : 0,
-        saleEndsAt: last.sale === null ? null : (evs.findLast((e) => e.saleEndsAt !== null)?.saleEndsAt ?? null),
-        editions: inStore.slice(1).map((l) => {
-          const p = l.points.at(-1)!;
-          const name = l.product.edition === 'standard' ? CHIP[l.product.platform] : l.product.edition;
-          return { name, price: p.sale ?? p.base, base: p.base, url: l.listing.url };
-        }),
+        editions: inStore
+          .slice(1)
+          .map((l) => ({
+            ...trackOf(l),
+            name: l.product.edition === 'standard' ? `${CHIP[l.product.platform]} 버전` : l.product.edition,
+          }))
+          .sort((x, y) => x.cur - y.cur),
       });
     }
 

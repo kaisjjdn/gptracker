@@ -15,6 +15,7 @@ const SORTS: [SortKey, string][] = [
   ['release', '출시일순'],
   ['price', '가격순'],
   ['discount', '할인율순'],
+  ['name', '이름순'],
 ];
 
 export type BrowserParams = { f?: string; q?: string; s?: string; d?: string };

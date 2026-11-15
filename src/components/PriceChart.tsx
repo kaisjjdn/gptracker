@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { fmtDay, type DiscView, type Series } from '@/lib/view';
+import { fmtDay, type DiscView, type Track } from '@/lib/view';
 
 export type Range = '6m' | '1y' | 'all';
 
@@ -35,7 +35,7 @@ export function PriceChart({
   now,
 }: {
   title: string;
-  series: Series;
+  series: Track;
   disc: DiscView | null;
   range: Range;
   now: number;

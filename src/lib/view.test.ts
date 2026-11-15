@@ -84,4 +84,6 @@ test('sorts games by release date, price and discount', () => {
   assert.deepEqual(order('release', 'asc'), ['old', 'new', 'undated']);
   assert.deepEqual(order('price', 'asc'), ['undated', 'old', 'new']);
   assert.deepEqual(order('discount', 'desc'), ['old', 'undated', 'new']);
+  assert.deepEqual(order('name', 'asc'), ['new', 'old', 'undated']);
+  assert.deepEqual(order('name', 'desc'), ['undated', 'old', 'new']);
 });

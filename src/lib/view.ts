@@ -7,11 +7,8 @@ export type ChangeKind = 'launch' | 'sale' | 'end' | 'hike' | 'cut' | 'other';
 // One step in a price history: from `t` on, the price was `price`.
 export type Change = { t: number; price: number; base: number; kind: ChangeKind; label: string; note: string };
 
-export type Series = {
-  key: Family;
-  storeName: string;
-  chip: string; // console label for the list
-  edition: string | null; // set when this store only sells a bigger edition, not the plain game
+// The price history of one item on one store.
+export type Track = {
   url: string | null;
   changes: Change[];
   sales: { s: number; e: number | null }[]; // periods spent on sale; e is null while it runs
@@ -21,7 +18,16 @@ export type Series = {
   low: number;
   pct: number; // current discount off the regular price
   saleEndsAt: number | null;
-  editions: { name: string; price: number; base: number; url: string | null }[];
+};
+
+// A store's view of a game: the plain game's history, plus that of every other
+// edition the store sells.
+export type Series = Track & {
+  key: Family;
+  storeName: string;
+  chip: string; // console label for the list
+  edition: string | null; // set when this store only sells a bigger edition, not the plain game
+  editions: (Track & { name: string })[]; // cheapest first
 };
 
 export type DiscView = {
@@ -111,7 +117,7 @@ export function lowestOverTime(histories: { t: number; price: number; note: stri
   return out;
 }
 
-export const atLow = (s: Series) => s.changes.length > 1 && s.cur <= s.low;
+export const atLow = (s: Track) => s.changes.length > 1 && s.cur <= s.low;
 
 // The stores to compare when showing one price for a game: those selling the
 // plain game. A bigger edition is a different product, so it only counts when
@@ -121,10 +127,10 @@ export function comparable(series: Series[]): Series[] {
   return plain.length > 0 ? plain : series;
 }
 
-export type SortKey = 'release' | 'price' | 'discount';
+export type SortKey = 'release' | 'price' | 'discount' | 'name';
 export type SortDir = 'asc' | 'desc';
 // The direction each sort starts in: newest first, cheapest first, biggest discount first.
-export const SORT_DEFAULT: Record<SortKey, SortDir> = { release: 'desc', price: 'asc', discount: 'desc' };
+export const SORT_DEFAULT: Record<SortKey, SortDir> = { release: 'desc', price: 'asc', discount: 'desc', name: 'asc' };
 
 // Order games for the grid. Price and discount follow the stores selling the
 // plain game; games without a release date always go last.
@@ -133,6 +139,7 @@ export function sortGames(games: GameView[], key: SortKey, dir: SortDir): GameVi
   const price = (g: GameView) => Math.min(...comparable(g.series).map((s) => s.cur));
   const discount = (g: GameView) => Math.max(...comparable(g.series).map((s) => s.pct));
   return [...games].sort((a, b) => {
+    if (key === 'name') return sign * a.title.localeCompare(b.title, 'ko');
     if (key === 'release') {
       if (!a.releaseDate || !b.releaseDate) return Number(!a.releaseDate) - Number(!b.releaseDate);
       return sign * a.releaseDate.localeCompare(b.releaseDate);
@@ -150,7 +157,7 @@ export const fmtDay = (t: number) =>
   new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date(t)).replaceAll('-', '.');
 
 // Is now a good time to buy? Based only on this listing's own history.
-export function verdict(s: Series, now: number): Verdict {
+export function verdict(s: Track, now: number): Verdict {
   if (s.changes.length < 2) {
     return {
       tone: 'ok',

@@ -15,6 +15,14 @@ const RANGES: [Range, string][] = [
   ['all', '전체'],
 ];
 
+// "Forza Horizon 5 프리미엄 에디션" -> "프리미엄 에디션": the page already names the game.
+function shortEdition(name: string, title: string): string {
+  const plain = (text: string) => text.replace(/[®™]/g, '').trim();
+  const [n, g] = [plain(name), plain(title)];
+  if (!n.toLowerCase().startsWith(g.toLowerCase())) return name;
+  return n.slice(g.length).replace(/^[\s:\-–—]+/, '') || name;
+}
+
 function readWatch(): Record<string, number> {
   try {
     return JSON.parse(localStorage.getItem(WATCH_KEY) ?? '{}') ?? {};
@@ -23,11 +31,12 @@ function readWatch(): Record<string, number> {
   }
 }
 
-// One game's page: store tabs, current price and verdict, chart, change log,
-// other editions and disc sellers. `now` comes from the server so both sides
+// One game's page: store tabs, an edition picker, current price and verdict,
+// chart, change log and disc sellers. `now` comes from the server so both sides
 // draw the same chart.
 export function GameDetail({ game, now, backHref }: { game: GameView; now: number; backHref: string }) {
   const [tab, setTab] = useState(game.series[0].key);
+  const [edition, setEdition] = useState<string | null>(null);
   const [range, setRange] = useState<Range>('all');
   const [showDisc, setShowDisc] = useState(false);
   const [logAll, setLogAll] = useState(false);
@@ -37,9 +46,13 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
   useEffect(() => setWatch(readWatch()), []);
 
   const s = game.series.find((x) => x.key === tab) ?? game.series[0];
-  const v = verdict(s, now);
+  // What is on screen: the plain game (null) or one of the store's other editions.
+  const picked = s.editions.find((e) => e.name === edition) ?? null;
+  const t = picked ?? s;
+  const mainLabel = s.edition ?? '기본판';
+  const v = verdict(t, now);
   const vc = v.tone === 'good' ? 'var(--good)' : v.tone === 'wait' ? 'var(--wait)' : 'var(--muted)';
-  const watchKey = `${game.slug}:${s.key}`;
+  const watchKey = picked ? `${game.slug}:${s.key}:${picked.name}` : `${game.slug}:${s.key}`;
   const target = watch[watchKey];
   const saveWatch = (next: Record<string, number>) => {
     setWatch(next);
@@ -50,7 +63,7 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
     }
   };
 
-  const log = [...s.changes].reverse();
+  const log = [...t.changes].reverse();
   const shown = logAll ? log : log.slice(0, 6);
   const disc = game.disc;
 
@@ -82,6 +95,7 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
             aria-selected={x.key === s.key}
             onClick={() => {
               setTab(x.key);
+              setEdition(null);
               setWatchOpen(false);
               setLogAll(false);
             }}
@@ -91,22 +105,40 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
         ))}
       </div>
 
+      {s.editions.length > 0 && (
+        <div className="editions" role="group" aria-label="에디션">
+          {[{ name: null as string | null, label: mainLabel, cur: s.cur }, ...s.editions.map((e) => ({ name: e.name as string | null, label: shortEdition(e.name, game.title), cur: e.cur }))].map((e) => (
+            <button
+              key={e.name ?? ''}
+              aria-pressed={e.name === (picked?.name ?? null)}
+              onClick={() => {
+                setEdition(e.name);
+                setWatchOpen(false);
+                setLogAll(false);
+              }}
+            >
+              {e.label} <span className="num">{won(e.cur)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <section className="price">
         <div>
-          {s.edition && (
+          {s.edition && !picked && (
             <div className="edition">
               <span className="tag">{s.edition}</span> {s.storeName}에서는 {s.edition}만 판매해요.
             </div>
           )}
-          {s.pct > 0 && (
+          {t.pct > 0 && (
             <div>
-              <span className="off">-{s.pct}%</span> <span className="was">{won(s.base)}</span>
+              <span className="off">-{t.pct}%</span> <span className="was">{won(t.base)}</span>
             </div>
           )}
-          <div className="big num">{won(s.cur)}</div>
-          {s.member !== null && (
+          <div className="big num">{won(t.cur)}</div>
+          {t.member !== null && (
             <div className="member">
-              {MEMBER_LABEL[s.key]} <b>{won(s.member)}</b>
+              {MEMBER_LABEL[s.key]} <b>{won(t.member)}</b>
             </div>
           )}
         </div>
@@ -120,7 +152,7 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
             <>
               <span className="watch">
                 🔔 {won(target)} 이하가 되면 알려드려요.
-                {s.cur <= target && <span className="hit">목표가에 도달했어요!</span>}
+                {t.cur <= target && <span className="hit">목표가에 도달했어요!</span>}
               </span>
               <button
                 className="btn"
@@ -154,15 +186,15 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
             <button
               className="btn primary"
               onClick={() => {
-                setTargetText(String(s.low));
+                setTargetText(String(t.low));
                 setWatchOpen(true);
               }}
             >
               가격 알림 받기
             </button>
           )}
-          {s.url && (
-            <a className="btn" href={s.url} target="_blank" rel="noopener noreferrer">
+          {t.url && (
+            <a className="btn" href={t.url} target="_blank" rel="noopener noreferrer">
               {s.storeName}에서 보기
             </a>
           )}
@@ -186,7 +218,7 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
           </label>
         )}
         <p className="hint">그래프에 손가락이나 마우스를 올리면 그날 가격과 바뀐 이유가 보여요.</p>
-        <PriceChart key={s.key} title={game.title} series={s} disc={showDisc ? disc : null} range={range} now={now} />
+        <PriceChart key={`${s.key}:${picked?.name ?? ''}`} title={picked ? `${game.title} ${picked.name}` : game.title} series={t} disc={showDisc ? disc : null} range={range} now={now} />
         <div className="legend">
           <span>
             <i style={{ width: 16, height: 3, background: 'var(--pc)' }} />
@@ -217,8 +249,8 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
         <h2>변동 기록</h2>
         <ul className="log">
           {shown.map((c) => {
-            const i = s.changes.indexOf(c);
-            const prev = i > 0 ? s.changes[i - 1].price : null;
+            const i = t.changes.indexOf(c);
+            const prev = i > 0 ? t.changes[i - 1].price : null;
             const delta = prev ? Math.round(((c.price - prev) / prev) * 100) : 0;
             return (
               <li key={c.t}>
@@ -249,32 +281,6 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
           </button>
         )}
       </section>
-
-      {s.editions.length > 0 && (
-        <section className="card">
-          <h2>다른 에디션</h2>
-          <table>
-            <tbody>
-              {s.editions.map((e) => (
-                <tr key={e.name}>
-                  <td>
-                    {e.url ? (
-                      <a href={e.url} target="_blank" rel="noopener noreferrer">
-                        {e.name}
-                      </a>
-                    ) : (
-                      e.name
-                    )}
-                  </td>
-                  <td>
-                    {e.price < e.base && <small className="was">{won(e.base)}</small>} <span className="num">{won(e.price)}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
 
       {disc && (
         <section className="card">
