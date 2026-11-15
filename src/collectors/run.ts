@@ -1,10 +1,15 @@
-// Daily collection entry point.
+// Collection entry point.
 //   npm run collect              every store
 //   npm run collect -- eshop     only the named stores
 //   npm run collect -- --skip eshop   every store except the ones after --skip
+//   npm run collect -- --minutes 20   stop each store after about 20 minutes
+//   npm run collect -- --all          read every game, even ones checked recently
+//
+// Games are read most-overdue first, and ones checked recently enough are left
+// for a later run (see schedule.ts).
 //                                (ps_store, eshop, xbox_store, coupang)
 // Coupang is skipped, with a note, until its API keys are set.
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { closeDb, db } from '../db';
 import { ensureReferenceData } from '../db/reference';
 import * as s from '../db/schema';
@@ -14,6 +19,7 @@ import type { DiscSpec } from './retail/match';
 import { collectNintendo } from './stores/nintendo';
 import { collectPlayStation } from './stores/playstation';
 import { collectXbox } from './stores/xbox';
+import { plan, type GameState } from './schedule';
 import { TRACKED, type TrackedGame } from './tracked';
 import type { Observation } from './types';
 
@@ -107,16 +113,59 @@ async function gameIdFor(game: TrackedGame, seen: Observation) {
   return existing.id;
 }
 
+type RunOptions = { minutes: number | null; all: boolean };
+
+// What is known about each game on one store, by slug: when it was last read,
+// when its price last changed, and whether it is on sale there.
+async function storeStates(storeId: number, regionId: number): Promise<Map<string, GameState>> {
+  const result = await db.execute(sql`
+    select g.slug, g.release_date,
+           max(l.last_checked_at) as checked_at,
+           max(latest.observed_at) as changed_at,
+           coalesce(bool_or(latest.sale_price is not null), false) as on_sale
+    from games g
+    join products p on p.game_id = g.id and p.format = 'digital'
+    join listings l on l.product_id = p.id and l.store_id = ${storeId} and l.region_id = ${regionId}
+    left join lateral (
+      select sale_price, observed_at from price_points
+      where listing_id = l.id order by observed_at desc, id desc limit 1
+    ) latest on true
+    group by g.slug, g.release_date
+  `);
+  const rows = (Array.isArray(result) ? result : (result as { rows: unknown[] }).rows) as Record<string, unknown>[];
+  const date = (v: unknown) => (v ? new Date(v as string | Date) : null);
+  return new Map(
+    rows.map((r) => [
+      r.slug as string,
+      {
+        checkedAt: date(r.checked_at),
+        changedAt: date(r.changed_at),
+        onSale: r.on_sale === true || r.on_sale === 't',
+        releaseDate: r.release_date ? String(r.release_date).slice(0, 10) : null,
+      },
+    ]),
+  );
+}
+
 // Collect one store. Returns the number of games that failed.
-async function runStore(collector: StoreCollector, region: Region): Promise<number> {
+async function runStore(collector: StoreCollector, region: Region, opts: RunOptions): Promise<number> {
   const [store] = await db.select().from(s.stores).where(eq(s.stores.code, collector.store));
-  const games = TRACKED.filter((g) => collector.idOf(g));
+  const tracked = TRACKED.filter((g) => collector.idOf(g));
+  const states = opts.all ? new Map<string, GameState>() : await storeStates(store.id, region.id);
+  const { due: games, hot, resting } = plan(
+    tracked.map((g) => ({ item: g, state: states.get(g.slug) })),
+    new Date(),
+  );
+  const deadline = opts.minutes === null ? Infinity : Date.now() + opts.minutes * 60_000;
+  let read = 0;
   let checked = 0;
   let changed = 0;
   let failed = 0;
 
   for (const [i, game] of games.entries()) {
+    if (Date.now() >= deadline) break; // out of time: the rest is first in line next run
     if (i > 0) await sleep(DELAY_MS);
+    read += 1;
     try {
       const observations = await collector.collect(collector.idOf(game)!, region);
       if (observations.length === 0) throw new Error('no priced products found on the page');
@@ -143,7 +192,12 @@ async function runStore(collector: StoreCollector, region: Region): Promise<numb
       console.error(`  ${game.title} failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  console.log(`${store.name} ${region.code}: ${games.length} games, ${checked} listings checked, ${changed} changed, ${failed} failed.`);
+  const left = games.length - read;
+  console.log(
+    `${store.name} ${region.code}: ${read} of ${tracked.length} games read` +
+      (opts.all ? '' : ` (${hot} on the frequent schedule, ${resting} not due yet${left > 0 ? `, ${left} left for the next run` : ''})`) +
+      `, ${checked} listings checked, ${changed} changed, ${failed} failed.`,
+  );
   return failed;
 }
 
@@ -208,10 +262,21 @@ async function runRetail(collector: RetailCollector, region: Region, asked: bool
 }
 
 async function main() {
+  // Store names before any flag are the ones to collect; names after --skip are left out.
+  const only: string[] = [];
+  const skip: string[] = [];
+  const opts: RunOptions = { minutes: null, all: false };
+  let into = only;
   const args = process.argv.slice(2);
-  const skipAt = args.indexOf('--skip');
-  const only = skipAt < 0 ? args : args.slice(0, skipAt);
-  const skip = skipAt < 0 ? [] : args.slice(skipAt + 1);
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--skip') into = skip;
+    else if (arg === '--all') opts.all = true;
+    else if (arg === '--minutes') {
+      opts.minutes = Number(args[++i]);
+      if (!(opts.minutes > 0)) throw new Error('--minutes needs a number, for example --minutes 20');
+    } else into.push(arg);
+  }
   const unknown = [...only, ...skip].filter((code) => ![...COLLECTORS, ...RETAIL].some((c) => c.store === code));
   if (unknown.length > 0) throw new Error(`Unknown store: ${unknown.join(', ')}`);
 
@@ -221,7 +286,7 @@ async function main() {
   let failed = 0;
   for (const collector of COLLECTORS) {
     if (skip.includes(collector.store) || (only.length > 0 && !only.includes(collector.store))) continue;
-    failed += await runStore(collector, region);
+    failed += await runStore(collector, region, opts);
   }
   for (const collector of RETAIL) {
     if (skip.includes(collector.store) || (only.length > 0 && !only.includes(collector.store))) continue;

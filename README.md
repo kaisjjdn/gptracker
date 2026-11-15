@@ -18,6 +18,8 @@ npm run dev          # http://localhost:3000
 | `npm run collect` | 모든 스토어 수집 |
 | `npm run collect -- eshop` | 이름을 적은 스토어만 수집 (`ps_store`, `eshop`, `xbox_store`, `coupang`) |
 | `npm run collect -- --skip eshop` | 적은 스토어만 빼고 수집 |
+| `npm run collect -- --minutes 20` | 스토어마다 약 20분만 수집하고 멈춤 |
+| `npm run collect -- --all` | 최근에 확인한 게임까지 전부 다시 수집 |
 | `npm run db:seed` | 샘플 게임 6개로 채우기. **기존 데이터를 모두 지웁니다.** 화면 개발용이며 운영 DB에서는 실행하지 마세요. |
 | `npm test` / `npm run typecheck` | 테스트 / 타입 검사 |
 
@@ -69,6 +71,17 @@ sh scripts/mac-collector/install.sh
 2. **Environment Variables**에 `DATABASE_URL`을 추가하고 배포합니다.
 
 사이트는 열 때마다 데이터베이스에서 최신 가격을 읽습니다. 서버는 데이터베이스와 가까운 서울 리전에서 실행되도록 `vercel.json`에 지정해 두었습니다.
+
+## 수집 주기
+
+게임이 늘어도 수집 시간이 일정하도록, 매번 전부 읽지 않고 나눠 읽습니다(`src/collectors/schedule.ts`).
+
+- **자주 확인(실행할 때마다)**: 세일 중인 게임, 최근 14일 안에 가격이 바뀐 게임, 출시 90일 이내이거나 출시 전인 게임, 새로 추가한 게임
+- **가끔 확인(사흘에 한 번)**: 그 밖의 게임
+- 확인이 가장 늦어진 게임부터 읽고, 정해진 시간(GitHub 20분, 맥 25분)이 지나면 멈춥니다. 남은 게임은 다음 실행에서 가장 먼저 읽습니다.
+- PS 스토어와 Xbox 스토어는 GitHub에서 동시에 수집합니다.
+
+사흘에 한 번 확인하는 게임은 세일 시작이 최대 사흘 늦게 기록될 수 있습니다. 세일이 잡히면 그때부터는 실행할 때마다 확인합니다.
 
 ## 구조
 

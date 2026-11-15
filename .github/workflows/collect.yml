@@ -1,5 +1,10 @@
 # Collects prices twice a day and writes them to the database.
 #
+# Each store is collected by its own job, at the same time: they are different
+# sites, so running side by side costs each of them nothing extra. A job reads
+# the most overdue games first and stops after 20 minutes; what is left is first
+# in line on the next run (see src/collectors/schedule.ts).
+#
 # The Nintendo eShop is left out: its store answers GitHub's servers with an
 # empty page. It is collected from a computer in Korea instead (see
 # scripts/mac-collector).
@@ -17,14 +22,13 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
 jobs:
-  collect:
+  migrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
-      COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,4 +39,24 @@ jobs:
       - name: Check the database secret
         run: test -n "$DATABASE_URL" || { echo "::error::Add the DATABASE_URL secret (Settings > Secrets and variables > Actions)."; exit 1; }
       - run: npm run db:migrate
-      - run: npm run collect -- --skip eshop
+
+  collect:
+    needs: migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false # one store failing should not stop the others
+      matrix:
+        # Add coupang here once COUPANG_ACCESS_KEY and COUPANG_SECRET_KEY are set as secrets.
+        store: [ps_store, xbox_store]
+    env:
+      COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+      COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run collect -- ${{ matrix.store }} --minutes 20

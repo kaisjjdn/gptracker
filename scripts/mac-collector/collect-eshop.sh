@@ -19,7 +19,7 @@ node --env-file=.env.collect --import tsx src/db/migrate.ts || echo "migration f
 
 # The network may not be up yet right after the Mac wakes: try a few times.
 for attempt in 1 2 3; do
-  node --env-file=.env.collect --import tsx src/collectors/run.ts eshop && exit 0
+  node --env-file=.env.collect --import tsx src/collectors/run.ts eshop --minutes 25 && exit 0
   echo "attempt $attempt failed"
   [ "$attempt" -lt 3 ] && sleep 120
 done
