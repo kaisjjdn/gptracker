@@ -92,3 +92,24 @@ test('release dates are given in Korean time, and placeholders are dropped', asy
   assert.equal(releaseDay(undefined), null);
   assert.equal(releaseDay('not a date'), null);
 });
+
+test('a deluxe edition the page does not label is not taken as the standard edition', async () => {
+  const { observationsFromCache } = await import('./playstation');
+  const cta = (id: string, price: number) => ({
+    local: { telemetryMeta: { skuDetail: { skuId: `${id}-SKU`, skuPriceDetail: [{ originalPriceValue: price, discountPriceValue: price, priceCurrencyCode: 'KRW', offerIsTiedToSubscription: false, offerBranding: 'NONE' }] } } },
+  });
+  // Older pages mark every edition as "OTHER", with no name.
+  const product = (id: string, name: string) => ({ id, name, topCategory: 'GAME', platforms: ['PS4'], storeDisplayClassification: 'FULL_GAME', edition: { name: '', type: 'OTHER' } });
+  const cache = {
+    'Concept:1': { name: 'DARK SOULS III', defaultProduct: { __ref: 'Product:DLX' }, products: [{ __ref: 'Product:DLX' }, { __ref: 'Product:STD' }] },
+    'Product:DLX': product('DLX', 'DARK SOULS™ III - 디럭스 에디션'),
+    'Product:STD': product('STD', 'DARK SOULS™ III'),
+    'GameCTA:a': cta('DLX', 89600),
+    'GameCTA:b': cta('STD', 64800),
+  };
+  const observations = observationsFromCache(cache, '1', { locale: 'ko-kr', currency: 'KRW' });
+  const standard = observations.find((o) => o.edition === 'standard')!;
+  assert.equal(standard.storeProductId, 'STD');
+  assert.equal(standard.price.basePrice, 64800);
+  assert.equal(observations.find((o) => o.storeProductId === 'DLX')!.edition, 'DARK SOULS™ III - 디럭스 에디션');
+});

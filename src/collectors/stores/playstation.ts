@@ -32,6 +32,9 @@ export function extractCache(html: string): Json {
 const coverOf = (entity: Json | undefined): string | null =>
   entity?.media?.find((m: Json) => m.role === 'MASTER' && m.type === 'IMAGE')?.url ?? null;
 
+// Words in a product name that mark a bigger edition, for pages that don't label it.
+const BIGGER_EDITION = /디럭스|deluxe|얼티밋|ultimate|프리미엄|premium|컴플리트|complete|골드 에디션|gold edition|gourmet|번들|bundle|collector|볼트 에디션|vault edition/i;
+
 export function observationsFromCache(
   cache: Json,
   conceptId: string,
@@ -48,14 +51,32 @@ export function observationsFromCache(
     .map((ref: Json) => cache[ref.__ref])
     .filter((p: Json | undefined) => p?.id && p.topCategory === 'GAME'); // drops demos
 
+  // Every purchase button of a product, with its price breakdown. An offer that
+  // discounts to zero is "included with a subscription", not a price.
+  const offersOf = (product: Json) =>
+    ctas.flatMap(([, cta]) => {
+      const sku = cta.local?.telemetryMeta?.skuDetail;
+      if (!sku?.skuId?.startsWith(product.id)) return [];
+      return (sku.skuPriceDetail ?? [])
+        .filter((detail: Json) => detail.discountPriceValue > 0)
+        .map((detail: Json) => ({ detail, local: cta.local as Json }));
+    });
+
   // A game page can list several "standard" products (the game itself, an
-  // online-only version, a two-game pack). Only one is the game's standard
-  // edition: the page's default product if it is standard, else the full game.
-  const standards = products.filter((p) => !p.edition?.type || p.edition.type === 'STANDARD');
+  // online-only version, a two-game pack, a deluxe edition the store did not
+  // label as one). Only one is the game's standard edition: among the priced
+  // ones, preferring those whose name doesn't say they are a bigger edition, the
+  // page's default product, else the full game.
+  // Older pages mark every edition as "OTHER"; then all priced products compete.
+  const priced = products.filter((p) => offersOf(p).length > 0);
+  const labelled = priced.filter((p) => !p.edition?.type || p.edition.type === 'STANDARD');
+  const standards = labelled.length > 0 ? labelled : priced.filter((p) => p.edition?.type === 'OTHER');
+  const plain = standards.filter((p) => !BIGGER_EDITION.test(p.name ?? ''));
+  const pool = plain.length > 0 ? plain : standards;
   const standard =
-    standards.find((p) => `Product:${p.id}` === concept.defaultProduct?.__ref) ??
-    standards.find((p) => p.storeDisplayClassification === 'FULL_GAME') ??
-    standards[0];
+    pool.find((p) => `Product:${p.id}` === concept.defaultProduct?.__ref) ??
+    pool.find((p) => p.storeDisplayClassification === 'FULL_GAME') ??
+    pool[0];
   // Product names end with a language list, "(중국어(간체자), 한국어, 영어)": cut that
   // trailing group, minding the nested parentheses.
   const withoutLanguages = (name: string) => {
@@ -70,15 +91,7 @@ export function observationsFromCache(
   };
 
   for (const product of products) {
-    // Every purchase button of this product, with its price breakdown. An offer
-    // that discounts to zero is "included with a subscription", not a price.
-    const offers = ctas.flatMap(([, cta]) => {
-      const sku = cta.local?.telemetryMeta?.skuDetail;
-      if (!sku?.skuId?.startsWith(product.id)) return [];
-      return (sku.skuPriceDetail ?? [])
-        .filter((detail: Json) => detail.discountPriceValue > 0)
-        .map((detail: Json) => ({ detail, local: cta.local as Json }));
-    });
+    const offers = offersOf(product);
     if (offers.length === 0) continue; // free, unreleased, or not for sale
 
     for (const { detail } of offers) {
