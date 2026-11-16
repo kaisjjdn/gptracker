@@ -75,8 +75,9 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'metaphor-refantazio', title: '메타포: 리판타지오', psConceptId: '10001029', xboxProductId: '9N5DV8310XP7' },
   { slug: 'death-stranding-2', title: 'DEATH STRANDING 2: ON THE BEACH', psConceptId: '10001538' },
   { slug: 'the-last-of-us-part-2-remastered', title: 'The Last of Us Part II Remastered', psConceptId: '230079' },
-  // The PS Store page for GTA V leads with GTA Online, so only Xbox is tracked.
-  { slug: 'grand-theft-auto-v', title: 'Grand Theft Auto V', xboxProductId: '9P8RQH67TTT1' },
+  // The PS Store sells GTA V and GTA Online from one page; `match` tells them apart.
+  { slug: 'grand-theft-auto-v', title: 'Grand Theft Auto V', psConceptId: '201930', xboxProductId: '9P8RQH67TTT1',
+    match: { ps_store: 'Grand Theft Auto V', xbox_store: 'Grand Theft Auto V' } },
   { slug: 'assassins-creed-shadows', title: '어쌔신 크리드 섀도우스', psConceptId: '10009909', xboxProductId: '9P42LWGMC7K4' },
   // Every store only sells the edition that includes both expansions.
   { slug: 'the-witcher-3', title: 'The Witcher 3: Wild Hunt', psConceptId: '204794', eshopId: '70010000020989', xboxProductId: 'C261457LCNMJ' },
@@ -464,4 +465,42 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'just-dance-2026', title: '저스트 댄스 2026 에디션', eshopId: '70070000029604' },
   { slug: 'moving-out', title: 'Moving Out', eshopId: '70010000029909' },
   { slug: 'snipperclips-plus', title: 'Snipperclips Plus', eshopId: '70010000009376' },
+
+  // Whole series (added 2026-11-16).
+  // Call of Duty. The newest ones share one PS Store page (see Modern Warfare 4 above).
+  { slug: 'call-of-duty-modern-warfare-iii-2023', title: '콜 오브 듀티: 모던 워페어 III (2023)', psConceptId: '10001130', xboxProductId: '9NLZZ74TFD7P', match: { ps_store: 'III 2023', xbox_store: 'III 2023' } },
+  { slug: 'call-of-duty-modern-warfare-ii-2022', title: '콜 오브 듀티: 모던 워페어 II (2022)', psConceptId: '10001130', xboxProductId: '9PNGFSX7S117', match: { ps_store: 'II 2022', xbox_store: 'II 2022' } },
+  { slug: 'call-of-duty-black-ops-6', title: '콜 오브 듀티: 블랙 옵스 6', psConceptId: '10001130', xboxProductId: '9N1N0NQNGK9W', match: { ps_store: '블랙 옵스 6', xbox_store: '블랙 옵스 6' } },
+  { slug: 'call-of-duty-vanguard', title: '콜 오브 듀티: 뱅가드', psConceptId: '10001234', xboxProductId: '9NQQ8B4PJR25' },
+  { slug: 'call-of-duty-black-ops-cold-war', title: '콜 오브 듀티: 블랙 옵스 콜드 워', psConceptId: '233407', xboxProductId: '9N2DMQBN9RC4' },
+  { slug: 'call-of-duty-modern-warfare-2019', title: '콜 오브 듀티: 모던 워페어 (2019)', psConceptId: '229182', xboxProductId: '9NVQBQ3F6W9W' },
+  { slug: 'call-of-duty-modern-warfare-2-campaign-remastered', title: '콜 오브 듀티: 모던 워페어 2 캠페인 리마스터', psConceptId: '229433', xboxProductId: '9N2CTV36Z5S6' },
+  { slug: 'call-of-duty-modern-warfare-remastered', title: 'Call of Duty: Modern Warfare Remastered', psConceptId: '221941', xboxProductId: 'BQLMFLL88BSW' },
+  { slug: 'call-of-duty-wwii', title: 'Call of Duty: WWII', psConceptId: '227115', xboxProductId: 'BWP0Q27QDNWQ', onlyEdition: { xbox_store: '골드 에디션' } },
+  { slug: 'call-of-duty-infinite-warfare', title: 'Call of Duty: Infinite Warfare', psConceptId: '221672', xboxProductId: 'BTBXS3M5QQSM' },
+  { slug: 'call-of-duty-black-ops-4', title: '콜 오브 듀티: 블랙 옵스 4', psConceptId: '232300', xboxProductId: 'BZJWV056VNPB' },
+  { slug: 'call-of-duty-black-ops-3', title: 'Call of Duty: Black Ops III', psConceptId: '200763', xboxProductId: 'C492DG1TQQ09', onlyEdition: { ps_store: 'Zombies Chronicles Edition', xbox_store: 'Zombies Chronicles Edition' } },
+  { slug: 'call-of-duty-black-ops-2', title: '콜 오브 듀티: 블랙 옵스 II', psConceptId: '10017658', xboxProductId: 'C1QJM5XT9SXV' },
+  { slug: 'call-of-duty-black-ops', title: '콜 오브 듀티: 블랙 옵스', psConceptId: '10017657', xboxProductId: 'BVMGCSX6XPC9' },
+  { slug: 'call-of-duty-advanced-warfare', title: 'Call of Duty: Advanced Warfare', psConceptId: '200756', xboxProductId: 'C20HL06X0V8W', onlyEdition: { ps_store: 'Gold Edition', xbox_store: 'Gold Edition' } },
+  { slug: 'call-of-duty-ghosts', title: 'Call of Duty: Ghosts', psConceptId: '200759' },
+  { slug: 'call-of-duty-modern-warfare-2-2009', title: 'Call of Duty: Modern Warfare 2 (2009)', xboxProductId: 'C2NNGCPR2XP8' },
+  { slug: 'call-of-duty-modern-warfare-3-2011', title: 'Call of Duty: Modern Warfare 3 (2011)', xboxProductId: 'BXZLCHZT8NDF' },
+  { slug: 'call-of-duty-world-at-war', title: 'Call of Duty: World at War', xboxProductId: 'C4P9QWXCHKNJ' },
+  { slug: 'call-of-duty-3', title: 'Call of Duty 3', xboxProductId: 'C2N2L6MHMV34' },
+  { slug: 'call-of-duty-2', title: 'Call of Duty 2', xboxProductId: 'C1Q14RM5224Q' },
+  // Grand Theft Auto.
+  { slug: 'grand-theft-auto-online', title: 'Grand Theft Auto 온라인', psConceptId: '201930', xboxProductId: '9NKC1Z4Z92VN', match: { ps_store: '온라인' } },
+  { slug: 'grand-theft-auto-the-trilogy', title: 'Grand Theft Auto: 트릴로지 – 데피니티브 에디션', psConceptId: '10003543', eshopId: '70070000013215', xboxProductId: '9MXMJFNZMVWD' },
+  { slug: 'grand-theft-auto-iv', title: 'Grand Theft Auto IV', xboxProductId: 'BRQ2SCZCTXF2' },
+  // Gears of War.
+  { slug: 'gears-of-war-reloaded', title: 'Gears of War: Reloaded', psConceptId: '10008829', xboxProductId: '9P8PS6993LSL' },
+  { slug: 'gears-5', title: 'Gears 5', xboxProductId: 'C2KDNLT2H7DM' },
+  { slug: 'gears-of-war-4', title: 'Gears of War 4', xboxProductId: '9NBLGGH4PBBM' },
+  { slug: 'gears-of-war-ultimate-edition', title: 'Gears of War: Ultimate Edition', xboxProductId: 'BR751B3H533G', onlyEdition: { xbox_store: '디럭스 버전' } },
+  { slug: 'gears-tactics', title: 'Gears Tactics', xboxProductId: '9NN3HCKW5TPC' },
+  { slug: 'gears-of-war', title: 'Gears of War', xboxProductId: 'BPN08ZDRPSFK' },
+  { slug: 'gears-of-war-2', title: 'Gears of War 2', xboxProductId: 'C1SDBNRFXT1D' },
+  { slug: 'gears-of-war-3', title: 'Gears of War 3', xboxProductId: 'BPKDQSSFQ9WV' },
+  { slug: 'gears-of-war-judgment', title: 'Gears of War: Judgment', xboxProductId: 'BSHMMGRP84N4' },
 ];

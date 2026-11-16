@@ -79,6 +79,10 @@ async function readCatalog(): Promise<GameView[]> {
           (a, b) =>
             Number(b.product.edition === 'standard') - Number(a.product.edition === 'standard') ||
             Number(b.product.edition === onlyEdition) - Number(a.product.edition === onlyEdition) ||
+            // No plain game on this store: its cheapest edition stands in.
+            (a.product.edition !== 'standard' && b.product.edition !== 'standard'
+              ? (a.points.at(-1)!.sale ?? a.points.at(-1)!.base) - (b.points.at(-1)!.sale ?? b.points.at(-1)!.base)
+              : 0) ||
             PLATFORMS.indexOf(a.product.platform) - PLATFORMS.indexOf(b.product.platform),
         );
       const main = inStore[0];

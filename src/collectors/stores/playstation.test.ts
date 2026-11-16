@@ -164,3 +164,19 @@ test('a product included with PS Plus is marked, and one merely discounted is no
   assert.equal(subscriptionOf({ id: 'ASTRO' }, ctas), null);
   assert.equal(subscriptionOf({ id: 'MEMBER' }, ctas), null); // a member discount, not inclusion
 });
+
+test('matching a game by name stops at word ends and sequel numbers', async () => {
+  const { nameContains } = await import('../types');
+  assert.equal(nameContains('콜 오브 듀티®: 모던 워페어® II - 세대 호환 번들', '모던 워페어 II'), true);
+  assert.equal(nameContains('콜 오브 듀티®: 모던 워페어 III - 세대 호환 번들', '모던 워페어 II'), false);
+  assert.equal(nameContains('콜 오브 듀티®: 모던 워페어 III - 세대 호환 번들', '모던 워페어 III'), true);
+  assert.equal(nameContains('콜 오브 듀티®: 모던 워페어 4 - 볼트 에디션', '모던 워페어 4'), true);
+  assert.equal(nameContains('콜 오브 듀티®: 모던 워페어 4', '모던 워페어'), false); // a numbered sequel is another game
+  assert.equal(nameContains('콜 오브 듀티®: 모던 워페어 III', '모던 워페어'), false);
+  assert.equal(nameContains('Call of Duty®: Black Ops 6 - 세대 호환 번들', 'Black Ops'), false);
+  assert.equal(nameContains('Call of Duty®: Black Ops Cold War', 'Black Ops Cold War'), true);
+  assert.equal(nameContains('Grand Theft Auto V (PS4™ & PS5™)', 'Grand Theft Auto V'), true);
+  assert.equal(nameContains('Grand Theft Auto VI', 'Grand Theft Auto V'), false);
+  assert.equal(nameContains('Grand Theft Auto 온라인 (PlayStation®5)', '온라인'), true);
+  assert.equal(nameContains('anything', undefined), true);
+});

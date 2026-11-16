@@ -77,9 +77,18 @@ export function observationsFromCache(
   const ctas = Object.entries<Json>(cache).filter(([key]) => key.startsWith('GameCTA:'));
   const observations: Observation[] = [];
 
-  const products: Json[] = (concept.products ?? [])
-    .map((ref: Json) => cache[ref.__ref])
-    .filter((p: Json | undefined) => p?.id && p.topCategory === 'GAME') // drops demos
+  // Some pages list no products at all and only name a default one.
+  const refs: string[] = [...new Set([...(concept.products ?? []), concept.defaultProduct].map((r: Json) => r?.__ref).filter(Boolean))];
+  const products: Json[] = refs
+    .map((ref) => cache[ref])
+    // Games only (drops demos and add-ons), plus whatever the page itself calls
+    // its default product: a few standalone campaigns are filed as add-ons.
+    .filter(
+      (p: Json | undefined) =>
+        p?.id &&
+        (p.topCategory === 'GAME' ||
+          (`Product:${p.id}` === concept.defaultProduct?.__ref && p.topCategory !== 'DEMO')),
+    )
     .filter((p: Json) => nameContains(p.name, opts.match)); // on a shared page, this game's products only
 
   // Every purchase button of a product, with its price breakdown. An offer that
@@ -95,25 +104,33 @@ export function observationsFromCache(
 
   // Which product is the game itself? Pages disagree on how they label things
   // (older ones mark everything "OTHER", some mark even the standard edition
-  // "PREMIUM"), so several signals are weighed:
-  //  1. the page's own default product, unless it is plainly a bigger edition;
+  // "PREMIUM"), and names mislead ("Gold Edition" can be the only base game on
+  // sale). So the store's own choice comes first:
+  //  1. the page's default product, unless the store labels it a bigger edition;
   //  2. otherwise a priced product that is not a bigger edition;
   //  3. otherwise (every product looks bigger) the one called "Standard", else
   //     the default.
   const priced = products.filter((p) => offersOf(p).length > 0);
-  // By its own label or name, a bigger edition (deluxe, ultimate, ...).
+  // Labelled by the store as more than the standard edition.
+  const labelledBigger = (p: Json) => !['STANDARD', 'OTHER', undefined, null].includes(p.edition?.type);
+  // Called a bigger edition (deluxe, ultimate, ...) in its name.
   const namedBigger = (p: Json) =>
-    !['STANDARD', 'OTHER', undefined, null].includes(p.edition?.type) || BIGGER_EDITION.test(p.name ?? '');
-  // Also counts how the store files it. Not applied to the page's default
-  // product: a remaster or director's cut is often filed as a "bundle" and is
-  // still the game the page is about.
+    labelledBigger(p) || BIGGER_EDITION.test(p.name ?? '') || BIGGER_EDITION.test(p.edition?.name ?? '');
+  // Also counts how the store files it.
   const isBigger = (p: Json) =>
     namedBigger(p) || ['GAME_BUNDLE', 'PREMIUM_EDITION'].includes(p.storeDisplayClassification);
   const isDefault = (p: Json) => `Product:${p.id}` === concept.defaultProduct?.__ref;
-  const saysStandard = (p: Json) => /standard|스탠다드|일반판/i.test(p.edition?.name ?? '');
+  // "Standard", or the standard game sold for both console generations at once.
+  const saysStandard = (p: Json) =>
+    /standard|스탠다드|일반판/i.test(p.edition?.name ?? '') ||
+    /크로스젠|세대 호환|cross-?gen/i.test(`${p.edition?.name ?? ''} ${p.name ?? ''}`);
   const plain = priced.filter((p) => !isBigger(p));
+  const listPrice = (p: Json) => Math.max(...offersOf(p).map((o) => o.detail.originalPriceValue));
+  // A default product named like a bigger edition, with a cheaper plain game
+  // next to it, is a deluxe edition the store happens to feature.
+  const undercut = (p: Json) => namedBigger(p) && plain.some((q) => q !== p && listPrice(q) < listPrice(p));
   const firstChoice =
-    priced.find((p) => isDefault(p) && !namedBigger(p)) ??
+    priced.find((p) => isDefault(p) && !labelledBigger(p) && !undercut(p)) ??
     plain.find((p) => p.edition?.type !== 'OTHER' && p.storeDisplayClassification === 'FULL_GAME') ??
     plain.find((p) => p.storeDisplayClassification === 'FULL_GAME') ??
     plain[0] ??
@@ -180,8 +197,12 @@ export function observationsFromCache(
     // Other products go by their edition name. One that also calls itself
     // "standard" (an online-only version, the last-generation copy) would be
     // indistinguishable that way, so it goes by its product name instead.
+    // When the store sells no plain game at all, only a bigger edition (a
+    // "Complete Edition" and nothing else), that edition keeps its own name so
+    // the site can say so instead of passing it off as the plain game.
+    const onlyBigger = product === standard && plain.length === 0 && namedBigger(product) && !saysStandard(product);
     const edition =
-      product === standard
+      product === standard && !onlyBigger
         ? 'standard'
         : (!saysStandard(product) && isBigger(product) && product.edition?.name) ||
           withoutLanguages(product.name ?? product.id);

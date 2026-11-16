@@ -44,7 +44,17 @@ export type Observation = {
 export function nameContains(name: string | undefined, text: string | undefined): boolean {
   if (!text) return true;
   const plain = (s: string) => s.replace(/[®™]/g, '').toLowerCase();
-  return plain(name ?? '').includes(plain(text));
+  const [haystack, needle] = [plain(name ?? ''), plain(text)];
+  // The text must end where a word ends, so "모던 워페어 II" does not also
+  // claim "모던 워페어 III", nor "Black Ops" "Black Ops 4".
+  for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, at + 1)) {
+    const next = haystack[at + needle.length] ?? '';
+    const afterSpace = haystack.slice(at + needle.length).match(/^\s+(\S)/)?.[1] ?? '';
+    if (/[\p{L}\p{N}]/u.test(next)) continue; // runs on: a longer word or number
+    if (/^\d$/.test(afterSpace) || /^[ivx]$/i.test(afterSpace) && /^\s+[ivx]+(\s|$|[^\p{L}])/iu.test(haystack.slice(at + needle.length))) continue; // followed by a sequel number
+    return true;
+  }
+  return false;
 }
 
 // A store's release date as YYYY-MM-DD in the given time zone, or null when it
