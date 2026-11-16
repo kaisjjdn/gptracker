@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildChanges, comparable, lowestOverTime, salePeriods, sortGames, verdict, type GameView, type EventRow, type PointRow, type Series } from './view';
+import { buildChanges, cheapestStore, comparable, highlights, inScope, lowestOverTime, salePeriods, sortGames, verdict, type GameView, type EventRow, type PointRow, type Series } from './view';
 
 const DAY = 86_400_000;
 const ev = (t: number, type: string, note = '', saleName: string | null = null): EventRow => ({ t, type, note, saleName, saleEndsAt: null });
@@ -86,4 +86,38 @@ test('sorts games by release date, price and discount', () => {
   assert.deepEqual(order('discount', 'desc'), ['old', 'undated', 'new']);
   assert.deepEqual(order('name', 'asc'), ['new', 'old', 'undated']);
   assert.deepEqual(order('name', 'desc'), ['undated', 'old', 'new']);
+});
+
+test('scope narrows a game to one platform and to Korean-language versions', () => {
+  const ps = series([step(0, 60000, 'launch')], { key: 'ps', korean: false });
+  const xb = series([step(0, 50000, 'launch')], { key: 'xb', korean: true });
+  const game: GameView = { slug: 'g', title: 'g', genre: null, publisher: null, coverUrl: null, releaseDate: null, disc: null, series: [ps, xb] };
+  assert.deepEqual(inScope(game, { platform: null, korean: false }), [ps, xb]);
+  assert.deepEqual(inScope(game, { platform: 'ps', korean: false }), [ps]);
+  assert.deepEqual(inScope(game, { platform: null, korean: true }), [xb]);
+  assert.deepEqual(inScope(game, { platform: 'ps', korean: true }), []);
+  assert.deepEqual(inScope(game, { platform: 'sw', korean: false }), []);
+});
+
+test('highlights: sales ending soon, sales just started, and fresh lows', () => {
+  const now = 100 * DAY;
+  const game = (slug: string, s: Series): GameView => ({ slug, title: slug, genre: null, publisher: null, coverUrl: null, releaseDate: null, disc: null, series: [s] });
+  const ending = game('ending', series([step(0, 60000, 'launch'), step(80, 30000, 'sale')], { pct: 50, saleEndsAt: now + 2 * DAY }));
+  const later = game('later', series([step(0, 60000, 'launch'), step(80, 30000, 'sale')], { pct: 50, saleEndsAt: now + 10 * DAY }));
+  const fresh = game('fresh', series([step(0, 60000, 'launch'), step(99, 45000, 'sale')], { pct: 25, saleEndsAt: now + 20 * DAY }));
+  const firstSeenOnSale = game('first-seen', series([step(99, 30000, 'launch')], { pct: 50 }));
+  const h = highlights([later, ending, fresh, firstSeenOnSale], now);
+  assert.deepEqual(h.ending.map((x) => x.game.slug), ['ending']);
+  assert.deepEqual(h.started.map((x) => x.game.slug), ['fresh']);
+  assert.deepEqual(h.lows.map((x) => x.game.slug), ['fresh']); // "ending" reached its low 20 days ago
+});
+
+test('cheapest store: needs two stores selling the plain game at different prices', () => {
+  const at = (key: Series['key'], price: number, over: Partial<Series> = {}) => series([step(0, price, 'launch')], { key, storeName: key, ...over });
+  const game = (list: Series[]): GameView => ({ slug: 'g', title: 'g', genre: null, publisher: null, coverUrl: null, releaseDate: null, disc: null, series: list });
+  const c = cheapestStore(game([at('ps', 60000), at('xb', 45000), at('sw', 50000)]))!;
+  assert.deepEqual([c.best.key, c.next.key], ['xb', 'sw']);
+  assert.equal(cheapestStore(game([at('ps', 60000)])), null);
+  assert.equal(cheapestStore(game([at('ps', 60000), at('xb', 60000)])), null);
+  assert.equal(cheapestStore(game([at('ps', 60000), at('sw', 30000, { edition: '컴플리트 에디션' })])), null);
 });

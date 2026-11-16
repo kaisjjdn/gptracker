@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { fmtDay, verdict, type GameView } from '@/lib/view';
+import { cheapestStore, fmtDay, verdict, type Family, type GameView } from '@/lib/view';
 import { Cover } from './Cover';
 import { PriceChart, type Range } from './PriceChart';
 
@@ -34,8 +34,19 @@ function readWatch(): Record<string, number> {
 // One game's page: store tabs, an edition picker, current price and verdict,
 // chart, change log and disc sellers. `now` comes from the server so both sides
 // draw the same chart.
-export function GameDetail({ game, now, backHref }: { game: GameView; now: number; backHref: string }) {
-  const [tab, setTab] = useState(game.series[0].key);
+export function GameDetail({
+  game,
+  now,
+  backHref,
+  startOn = null,
+}: {
+  game: GameView;
+  now: number;
+  backHref: string;
+  startOn?: Family | null;
+}) {
+  const [tab, setTab] = useState(game.series.find((x) => x.key === startOn)?.key ?? game.series[0].key);
+  const cheapest = cheapestStore(game);
   const [edition, setEdition] = useState<string | null>(null);
   const [range, setRange] = useState<Range>('all');
   const [showDisc, setShowDisc] = useState(false);
@@ -86,6 +97,12 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
         </div>
       </div>
 
+      {cheapest && (
+        <p className="best">
+          지금 가장 싼 곳은 <b>{cheapest.best.storeName}</b> {won(cheapest.best.cur)}. {cheapest.next.storeName}보다{' '}
+          <b>{won(cheapest.next.cur - cheapest.best.cur)}</b> 저렴해요.
+        </p>
+      )}
       <div className="tabs" role="tablist">
         {game.series.map((x) => (
           <button
@@ -101,6 +118,7 @@ export function GameDetail({ game, now, backHref }: { game: GameView; now: numbe
             }}
           >
             {x.storeName}
+            {cheapest?.best.key === x.key && <span className="tag low">최저</span>}
           </button>
         ))}
       </div>

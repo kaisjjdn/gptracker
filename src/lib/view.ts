@@ -133,12 +133,23 @@ export type SortDir = 'asc' | 'desc';
 // The direction each sort starts in: newest first, cheapest first, biggest discount first.
 export const SORT_DEFAULT: Record<SortKey, SortDir> = { release: 'desc', price: 'asc', discount: 'desc', name: 'asc' };
 
-// Order games for the grid. Price and discount follow the stores selling the
-// plain game; games without a release date always go last.
-export function sortGames(games: GameView[], key: SortKey, dir: SortDir): GameView[] {
+// Which of a game's stores count for a visitor's choices: one platform only,
+// Korean-language versions only, or both. Within those, the plain game is
+// compared before bigger editions (see `comparable`). Empty when nothing fits.
+export type Scope = { platform: Family | null; korean: boolean };
+export function inScope(game: GameView, scope: Scope): Series[] {
+  let list = scope.platform ? game.series.filter((s) => s.key === scope.platform) : game.series;
+  if (scope.korean) list = list.filter((s) => s.korean === true);
+  return list.length > 0 ? comparable(list) : [];
+}
+const everything: Scope = { platform: null, korean: false };
+
+// Order games for the grid. Price and discount follow the stores in scope;
+// games without a release date always go last.
+export function sortGames(games: GameView[], key: SortKey, dir: SortDir, scope: Scope = everything): GameView[] {
   const sign = dir === 'asc' ? 1 : -1;
-  const price = (g: GameView) => Math.min(...comparable(g.series).map((s) => s.cur));
-  const discount = (g: GameView) => Math.max(...comparable(g.series).map((s) => s.pct));
+  const price = (g: GameView) => Math.min(...inScope(g, scope).map((s) => s.cur));
+  const discount = (g: GameView) => Math.max(...inScope(g, scope).map((s) => s.pct));
   return [...games].sort((a, b) => {
     if (key === 'name') return sign * a.title.localeCompare(b.title, 'ko');
     if (key === 'release') {
@@ -148,6 +159,41 @@ export function sortGames(games: GameView[], key: SortKey, dir: SortDir): GameVi
     const value = key === 'price' ? price : discount;
     return sign * (value(a) - value(b)) || price(a) - price(b);
   });
+}
+
+export type Highlight = { game: GameView; series: Series };
+export type Highlights = { ending: Highlight[]; started: Highlight[]; lows: Highlight[] };
+
+// What is worth a look today: sales about to end, sales that just began, and
+// games that just reached their lowest recorded price.
+export function highlights(games: GameView[], now: number, scope: Scope = everything, max = 12): Highlights {
+  const DAYS = 86_400_000;
+  const ending: Highlight[] = [];
+  const started: Highlight[] = [];
+  const lows: Highlight[] = [];
+  for (const game of games) {
+    const stores = [...inScope(game, scope)].sort((a, b) => a.cur - b.cur); // cheapest store speaks for the game
+    const last = (s: Series) => s.changes.at(-1)!;
+    const end = stores.find((s) => s.pct > 0 && s.saleEndsAt !== null && s.saleEndsAt > now && s.saleEndsAt - now <= 3 * DAYS);
+    if (end) ending.push({ game, series: end });
+    const start = stores.find((s) => s.pct > 0 && last(s).kind === 'sale' && now - last(s).t <= 3 * DAYS);
+    if (start) started.push({ game, series: start });
+    // A new low needs a history to be lower than, and has to be recent.
+    const low = stores.find((s) => atLow(s) && s.cur < s.changes[0].price && now - last(s).t <= 7 * DAYS);
+    if (low) lows.push({ game, series: low });
+  }
+  ending.sort((a, b) => a.series.saleEndsAt! - b.series.saleEndsAt!);
+  started.sort((a, b) => b.series.changes.at(-1)!.t - a.series.changes.at(-1)!.t || b.series.pct - a.series.pct);
+  lows.sort((a, b) => b.series.pct - a.series.pct);
+  return { ending: ending.slice(0, max), started: started.slice(0, max), lows: lows.slice(0, max) };
+}
+
+// Where the plain game is cheapest right now, when two or more stores sell it
+// at different prices: the cheapest store and the next one up.
+export function cheapestStore(game: GameView): { best: Series; next: Series } | null {
+  const plain = game.series.filter((s) => s.edition === null).sort((a, b) => a.cur - b.cur);
+  if (plain.length < 2 || plain[0].cur === plain[1].cur) return null;
+  return { best: plain[0], next: plain[1] };
 }
 
 export type Verdict = { tone: 'good' | 'wait' | 'ok'; head: string; text: string; sub: string };
