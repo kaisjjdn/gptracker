@@ -157,6 +157,11 @@ export function GameDetail({
           {t.korean !== null && (
             <div className={`lang ${t.korean ? 'yes' : 'no'}`}>{t.korean ? '한국어 지원' : '한국어 미지원'}</div>
           )}
+          {t.subscription && (
+            <div className="sub">
+              <b>{t.subscription}</b> 가입자는 추가 비용 없이 플레이할 수 있어요.
+            </div>
+          )}
           {t.member !== null && (
             <div className="member">
               {MEMBER_LABEL[s.key]} <b>{won(t.member)}</b>

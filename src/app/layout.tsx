@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
 import { Suspense, type ReactNode } from 'react';
 import { SearchBox } from '@/components/SearchBox';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import './globals.css';
 
+const title = 'GPtracker 게임 가격 추적';
+
 export const metadata: Metadata = {
-  title: 'GPtracker 게임 가격 추적',
-  description: '한국 PS 스토어, 닌텐도 e숍, Xbox 스토어와 디스크 가격을 매일 추적해요.',
+  metadataBase: new URL(SITE_URL),
+  title: { default: title, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: { type: 'website', siteName: SITE_NAME, locale: 'ko_KR', url: '/', title, description: SITE_DESCRIPTION },
+  twitter: { card: 'summary', title, description: SITE_DESCRIPTION },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

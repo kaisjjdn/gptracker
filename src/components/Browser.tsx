@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { loadCatalog } from '@/lib/catalog';
 import { sized } from '@/lib/image';
+import { SITE_URL } from '@/lib/site';
 import {
   atLow,
   fmtDay,
@@ -23,6 +24,7 @@ const FILTERS = [
   ['all', '전체'],
   ['sale', '할인 중'],
   ['low', '역대 최저가'],
+  ['sub', '구독 포함'],
 ] as const;
 const PLATFORMS: [Family, string][] = [
   ['ps', 'PlayStation'],
@@ -118,6 +120,7 @@ export async function GameGrid({ params }: { params: BrowserParams }) {
     if (needle && !g.title.toLowerCase().includes(needle)) return false;
     if (filter === 'sale') return inScope(g, scope).some((s) => s.pct > 0);
     if (filter === 'low') return inScope(g, scope).some(atLow);
+    if (filter === 'sub') return inScope(g, scope).some((s) => s.subscription !== null);
     return true;
   });
   const items = sortGames(matching, sort, dir, scope);
@@ -202,8 +205,29 @@ export async function GamePage({ slug, params }: { slug: string; params: Browser
   const game = (await loadCatalog()).find((g) => g.slug === slug);
   if (!game) notFound();
   const view = readView(params);
+  // Structured data, so a search result can show the price range.
+  const prices = game.series.map((s) => s.cur);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name: game.title,
+    url: `${SITE_URL}/games/${game.slug}`,
+    image: game.coverUrl ?? undefined,
+    genre: game.genre ?? undefined,
+    publisher: game.publisher ? { '@type': 'Organization', name: game.publisher } : undefined,
+    datePublished: game.releaseDate ?? undefined,
+    gamePlatform: game.series.map((s) => s.chip),
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'KRW',
+      lowPrice: Math.min(...prices),
+      highPrice: Math.max(...prices),
+      offerCount: game.series.length,
+    },
+  };
   return (
     <main className="game">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       {/* Coming from a platform's list, open on that platform's store. */}
       <GameDetail key={game.slug} game={game} now={Date.now()} backHref={`/${query(view)}`} startOn={view.platform} />
     </main>

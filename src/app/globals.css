@@ -99,6 +99,8 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .lang{margin-top:8px;font-size:13px;font-weight:700}
 .lang.yes{color:var(--good)}
 .lang.no{color:var(--wait)}
+.sub{margin-top:6px;font-size:13.5px;color:var(--muted)}
+.sub b{color:var(--pc)}
 .member{margin-top:6px;font-size:14px;color:var(--muted)}
 .member b{color:var(--ink)}
 .verdict{border-left:3px solid var(--vc);padding:2px 0 2px 14px}

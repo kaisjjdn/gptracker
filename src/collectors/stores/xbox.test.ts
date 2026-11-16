@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { extractState, koreanOf, observationsFromState } from './xbox';
+import { extractState, koreanOf, observationsFromState, subscriptionOf } from './xbox';
 
 const html = readFileSync(new URL('./fixtures/xbox-product.html', import.meta.url), 'utf8');
 const opts = { locale: 'ko-KR', currency: 'KRW' };
@@ -50,4 +50,12 @@ test('Korean support comes from the language table', () => {
   assert.equal(koreanOf({ languagesSupported: { 'en-US': row(true) } }), false);
   assert.equal(koreanOf({ languagesSupported: {} }), null);
   assert.equal(koreanOf({}), null);
+});
+
+test('a product included with Game Pass is marked', () => {
+  const summaries = { PASS1: { title: '콘솔용 Xbox Game Pass' }, PASS2: { title: 'EA Play' } };
+  assert.equal(subscriptionOf({ includedWithPassesProductIds: ['PASS1', 'PASS2'] }, summaries), 'Game Pass');
+  assert.equal(subscriptionOf({ includedWithPassesProductIds: ['PASS2'] }, summaries), 'EA Play');
+  assert.equal(subscriptionOf({ includedWithPassesProductIds: [] }, summaries), null);
+  assert.equal(subscriptionOf({}, summaries), null);
 });

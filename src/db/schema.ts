@@ -96,6 +96,7 @@ export const listings = pgTable(
     sellerName: text('seller_name'), // marketplace seller on retail stores, e.g. 11번가
     note: text('note'), // e.g. 로켓배송, 특전 포함
     korean: boolean('korean'), // Korean text supported, as the store states; null when unknown
+  subscription: text('subscription'), // subscription that includes it at no extra cost, if any
   isActive: boolean('is_active').notNull().default(true),
     firstSeenAt: ts('first_seen_at').notNull().defaultNow(),
     lastCheckedAt: ts('last_checked_at'),

@@ -33,6 +33,9 @@ export type Observation = {
   sellerName?: string | null; // the shop behind a retail offer
   releaseDate?: string | null; // YYYY-MM-DD, as the store states it
   korean?: boolean | null; // Korean text (interface or subtitles); null when the store does not say
+  // The subscription that includes this game at no extra cost ("PS Plus 게임 카탈로그",
+  // "Game Pass"), null when none does. Left undefined by stores without one.
+  subscription?: string | null;
 };
 
 // Does a store's product name contain this text? Trademark signs and case are

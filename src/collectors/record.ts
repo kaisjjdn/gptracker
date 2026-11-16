@@ -50,6 +50,7 @@ export async function recordObservation(db: Db, ctx: RecordContext, obs: Observa
           url: obs.url,
           sellerName: obs.sellerName ?? null,
           korean: obs.korean ?? null,
+          subscription: obs.subscription ?? null,
           firstSeenAt: ctx.now,
         })
         .returning();
@@ -71,7 +72,11 @@ export async function recordObservation(db: Db, ctx: RecordContext, obs: Observa
     }
     await tx
       .update(s.listings)
-      .set({ lastCheckedAt: ctx.now, url: obs.url, sellerName: obs.sellerName ?? listing.sellerName, korean: obs.korean ?? listing.korean, isActive: true })
+      .set({ lastCheckedAt: ctx.now, url: obs.url, sellerName: obs.sellerName ?? listing.sellerName, korean: obs.korean ?? listing.korean,
+        // Unlike a language, this comes and goes: null from the store clears it.
+        subscription: obs.subscription === undefined ? listing.subscription : obs.subscription,
+        isActive: true,
+      })
       .where(eq(s.listings.id, listing.id));
 
     const [last] = await tx

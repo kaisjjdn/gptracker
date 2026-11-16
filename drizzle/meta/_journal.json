@@ -29,6 +29,13 @@
       "when": 1794765655965,
       "tag": "0003_tearful_living_lightning",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794797340868,
+      "tag": "0004_fresh_corsair",
+      "breakpoints": true
     }
   ]
 }

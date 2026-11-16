@@ -147,3 +147,20 @@ test('Korean support comes from the screen languages, else from the product name
   assert.equal(koreanOf({ screenLanguages: [], name: 'Enter the Gungeon (게임)' }), null);
   assert.equal(koreanOf({ name: 'ASTRO BOT' }), null);
 });
+
+test('a product included with PS Plus is marked, and one merely discounted is not', async () => {
+  const { subscriptionOf } = await import('./playstation');
+  const cta = (type: string, id: string, from: number, to: number, sub: boolean, brand: string): [string, Record<string, any>] => [
+    `GameCTA:${type}:${id}`,
+    { type, local: { telemetryMeta: { skuDetail: { skuId: `${id}-SKU`, skuPriceDetail: [{ originalPriceValue: from, discountPriceValue: to, offerIsTiedToSubscription: sub, offerBranding: brand }] } } } },
+  ];
+  const ctas = [
+    cta('UPSELL_PS_PLUS_GAME_CATALOG', 'HFW', 58800, 0, true, 'PS_PLUS'),
+    cta('ADD_TO_CART', 'HFW', 58800, 58800, false, 'NONE'),
+    cta('ADD_TO_CART', 'ASTRO', 69800, 46068, false, 'NONE'),
+    cta('UPSELL_PS_PLUS_DISCOUNT', 'MEMBER', 50000, 40000, true, 'PS_PLUS'),
+  ];
+  assert.equal(subscriptionOf({ id: 'HFW' }, ctas), 'PS Plus 게임 카탈로그');
+  assert.equal(subscriptionOf({ id: 'ASTRO' }, ctas), null);
+  assert.equal(subscriptionOf({ id: 'MEMBER' }, ctas), null); // a member discount, not inclusion
+});

@@ -45,6 +45,15 @@ export function koreanOf(product: Json): boolean | null {
   return !!ko && (ko.isInterfaceSupported || ko.areSubtitlesSupported || ko.isAudioSupported) === true;
 }
 
+// "Game Pass" (or another pass, by its name) when the product is included with
+// one; the page lists the passes by product id and describes each alongside.
+export function subscriptionOf(product: Json, summaries: Json): string | null {
+  const titles: string[] = (product.includedWithPassesProductIds ?? []).map((id: string) => summaries[id]?.title ?? '');
+  if (titles.length === 0) return null;
+  if (titles.some((t) => /game pass/i.test(t))) return 'Game Pass';
+  return titles.find(Boolean)?.trim() || '구독';
+}
+
 export function observationsFromState(
   state: Json,
   productId: string,
@@ -111,6 +120,7 @@ export function observationsFromState(
       sale,
       releaseDate: releaseDay(product.releaseDate),
       korean: koreanOf(product),
+      subscription: subscriptionOf(product, summaries),
     });
   }
   return observations;

@@ -19,6 +19,7 @@ export type Track = {
   pct: number; // current discount off the regular price
   saleEndsAt: number | null;
   korean: boolean | null; // Korean text supported; null when the store does not say
+  subscription: string | null; // subscription that includes it at no extra cost
 };
 
 // A store's view of a game: the plain game's history, plus that of every other

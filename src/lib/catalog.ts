@@ -100,6 +100,7 @@ async function readCatalog(): Promise<GameView[]> {
           pct: cur < last.base ? Math.round((1 - cur / last.base) * 100) : 0,
           saleEndsAt: last.sale === null ? null : (evs.findLast((e) => e.saleEndsAt !== null)?.saleEndsAt ?? null),
           korean: l.listing.korean,
+          subscription: l.listing.subscription,
         };
       };
       series.push({

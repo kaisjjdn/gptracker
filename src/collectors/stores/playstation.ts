@@ -32,6 +32,23 @@ export function extractCache(html: string): Json {
 const coverOf = (entity: Json | undefined): string | null =>
   entity?.media?.find((m: Json) => m.role === 'MASTER' && m.type === 'IMAGE')?.url ?? null;
 
+// The subscription that includes this product, from the page's "included with"
+// buttons: an offer tied to a subscription that brings the price to zero.
+const SUBSCRIPTIONS: Record<string, string> = { PS_PLUS: 'PS Plus', EA_ACCESS: 'EA Play', UBISOFT_PLUS: 'Ubisoft+' };
+export function subscriptionOf(product: Json, ctas: [string, Json][]): string | null {
+  for (const [, cta] of ctas) {
+    const sku = cta.local?.telemetryMeta?.skuDetail;
+    if (!sku?.skuId?.startsWith(product.id)) continue;
+    const free = (sku.skuPriceDetail ?? []).find(
+      (d: Json) => d.discountPriceValue === 0 && d.originalPriceValue > 0 && d.offerIsTiedToSubscription,
+    );
+    if (!free) continue;
+    const name = SUBSCRIPTIONS[free.offerBranding] ?? '구독';
+    return cta.type === 'UPSELL_PS_PLUS_GAME_CATALOG' ? `${name} 게임 카탈로그` : name;
+  }
+  return null;
+}
+
 // Does this product have Korean text? The page lists screen languages for newer
 // products; older ones only say so in the name: "... (한국어판)" or a language list
 // in brackets at the end, "... (중국어(간체자), 한국어, 영어)".
@@ -181,6 +198,7 @@ export function observationsFromCache(
       sale,
       releaseDate: releaseDay(product.releaseDate),
       korean: koreanOf(product),
+      subscription: subscriptionOf(product, ctas),
     });
   }
   return observations;
