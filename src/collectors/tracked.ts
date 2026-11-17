@@ -503,4 +503,46 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'gears-of-war-2', title: 'Gears of War 2', xboxProductId: 'C1SDBNRFXT1D' },
   { slug: 'gears-of-war-3', title: 'Gears of War 3', xboxProductId: 'BPKDQSSFQ9WV' },
   { slug: 'gears-of-war-judgment', title: 'Gears of War: Judgment', xboxProductId: 'BSHMMGRP84N4' },
+  // Assassin's Creed.
+  { slug: 'assassins-creed-unity', title: '어쌔신 크리드 유니티', psConceptId: '200088', xboxProductId: 'BRQH27C9RGXS' },
+  { slug: 'assassins-creed-syndicate', title: '어쌔신 크리드 신디케이트', psConceptId: '212339', xboxProductId: 'BXVQ8M4J9HNM' },
+  { slug: 'assassins-creed-rogue-remastered', title: '어쌔신 크리드 로그 리마스터', psConceptId: '230095', xboxProductId: 'BWT5L9P3L60X' },
+  { slug: 'assassins-creed-iv-black-flag', title: '어쌔신 크리드 IV 블랙 플래그', psConceptId: '200089' },
+  { slug: 'assassins-creed-iii-remastered', title: '어쌔신 크리드 III 리마스터', psConceptId: '231856', eshopId: '70010000010683', xboxProductId: 'BPMJ413V6BB2' },
+  { slug: 'assassins-creed-the-ezio-collection', title: '어쌔신 크리드 에지오 컬렉션', psConceptId: '225519', eshopId: '70010000038688', xboxProductId: 'BQ9S8ZKCT3Q7' },
+  { slug: 'assassins-creed-the-rebel-collection', title: '어쌔신 크리드 레벨 컬렉션', eshopId: '70010000019187' },
+  { slug: 'assassins-creed-ii', title: '어쌔신 크리드 II', xboxProductId: 'BNVMH8NVCRCT' },
+  { slug: 'assassins-creed-revelations', title: '어쌔신 크리드 레벨레이션', xboxProductId: 'BX2JJ48F0CKR' },
+  { slug: 'assassins-creed-chronicles-trilogy', title: '어쌔신 크리드 크로니클 트릴로지', xboxProductId: 'C4HB1XWT02DK' },
+  // Far Cry.
+  { slug: 'far-cry-5', title: '파 크라이 5', psConceptId: '221692', xboxProductId: 'BR7X7MVBBQKM' },
+  { slug: 'far-cry-new-dawn', title: '파 크라이 뉴 던', psConceptId: '232910', xboxProductId: 'C1DDW4PRF6K5' },
+  { slug: 'far-cry-4', title: '파 크라이 4', psConceptId: '201624' },
+  { slug: 'far-cry-primal', title: '파 크라이 프라이멀', xboxProductId: 'BV6BRSLFJW3W' },
+  { slug: 'far-cry-3-classic-edition', title: '파 크라이 3 클래식 에디션', psConceptId: '231486' },
+  { slug: 'far-cry-3-blood-dragon', title: '파 크라이 3 블러드 드래곤 클래식 에디션', xboxProductId: '9NVJ4L71DF5Q' },
+  { slug: 'far-cry-2', title: 'Far Cry 2', xboxProductId: 'BRCK1B8950B2' },
+  // Watch Dogs.
+  { slug: 'watch-dogs', title: '와치독스', psConceptId: '205264', xboxProductId: 'C4DMGRPNSHXG' },
+  { slug: 'watch-dogs-2', title: '와치독스 2', psConceptId: '216759', xboxProductId: 'BSXLFN5QQZSC' },
+  // Tomb Raider.
+  { slug: 'tomb-raider-legacy-of-atlantis', title: '툼 레이더: 아틀란티스의 유산', psConceptId: '10014491', xboxProductId: '9NRQT9JHH993' },
+  { slug: 'shadow-of-the-tomb-raider', title: '섀도우 오브 더 툼 레이더 디피니티브 에디션', psConceptId: '231844', xboxProductId: 'BNQQ3WVBNZCQ' },
+  { slug: 'rise-of-the-tomb-raider', title: '라이즈 오브 더 툼 레이더: 20주년 기념판', psConceptId: '221750', xboxProductId: 'C4S60FPWF4XN' },
+  { slug: 'tomb-raider-definitive-edition', title: '툼 레이더 디피니티브 에디션', xboxProductId: 'BQXTS0SX4W0N' },
+  { slug: 'tomb-raider-i-iii-remastered', title: '툼 레이더 I-III 리마스터', xboxProductId: '9N25D4T3L8JX' },
+  { slug: 'tomb-raider-iv-vi-remastered', title: '툼 레이더 IV-VI 리마스터', psConceptId: '10009064', eshopId: '70010000098563', xboxProductId: '9P4ZKKX7V5ZQ' },
+  // Batman: Arkham.
+  { slug: 'batman-arkham-knight', title: '배트맨: 아캄 나이트', psConceptId: '200472', eshopId: '70010000045913', xboxProductId: 'BSLX1RNXR6H7' },
+  { slug: 'batman-return-to-arkham', title: '배트맨: 리턴 투 아캄', psConceptId: '216064', xboxProductId: 'BRW49CBS558D' },
+  { slug: 'batman-arkham-trilogy', title: '배트맨: 아캄 트릴로지', eshopId: '70070000018080' },
+  { slug: 'batman-arkham-collection', title: '배트맨: 아캄 컬렉션', xboxProductId: 'C4H36B87SVL1', match: { xbox_store: 'Arkham 컬렉션' } },
+  // Battlefield.
+  { slug: 'battlefield-2042', title: '배틀필드 2042', psConceptId: '10000758', xboxProductId: '9PD5BFNZ4V7K' },
+  { slug: 'battlefield-v', title: '배틀필드 V', psConceptId: '227326', xboxProductId: '9NZKJ17BBH50' },
+  { slug: 'battlefield-1', title: '배틀필드 1', psConceptId: '221824', xboxProductId: 'BWTTW53M5B98' },
+  { slug: 'battlefield-4', title: '배틀필드 4', psConceptId: '200449' },
+  // Halo.
+  { slug: 'halo-the-master-chief-collection', title: '헤일로: 마스터 치프 컬렉션', xboxProductId: '9MT8PTGVHX2P' },
+  { slug: 'halo-5-guardians', title: '헤일로 5: 가디언즈', xboxProductId: 'BRRC2BP0G9P0' },
 ];

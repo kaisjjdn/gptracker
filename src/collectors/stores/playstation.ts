@@ -139,10 +139,14 @@ export function observationsFromCache(
     priced.find(isDefault) ??
     priced[0];
   // Some games are sold as separate products per language. On the Korean
-  // store, the Korean-language one is the one to follow.
+  // store, the Korean-language one is the one to follow. Old pages file both
+  // as bundles, so a Korean copy that does not call itself a bigger edition
+  // also counts.
   const standard =
     firstChoice && koreanOf(firstChoice) === false
-      ? (plain.find((p) => koreanOf(p) === true) ?? firstChoice)
+      ? (plain.find((p) => koreanOf(p) === true) ??
+        priced.find((p) => koreanOf(p) === true && !namedBigger(p)) ??
+        firstChoice)
       : firstChoice;
   // Product names end with a language list, "(중국어(간체자), 한국어, 영어)": cut that
   // trailing group, minding the nested parentheses.
