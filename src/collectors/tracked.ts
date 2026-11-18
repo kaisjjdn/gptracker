@@ -545,4 +545,43 @@ export const TRACKED: TrackedGame[] = [
   // Halo.
   { slug: 'halo-the-master-chief-collection', title: '헤일로: 마스터 치프 컬렉션', xboxProductId: '9MT8PTGVHX2P' },
   { slug: 'halo-5-guardians', title: '헤일로 5: 가디언즈', xboxProductId: 'BRRC2BP0G9P0' },
+  // Resident Evil and Dead Rising.
+  { slug: 'resident-evil-0', title: '바이오하자드 0 HD 리마스터', psConceptId: '232113' },
+  { slug: 'resident-evil-hd-remaster', title: '바이오하자드 HD 리마스터', psConceptId: '232112' },
+  { slug: 'resident-evil-5', title: '바이오하자드 5', psConceptId: '232115' },
+  { slug: 'resident-evil-6', title: '바이오하자드 6', psConceptId: '232116' },
+  { slug: 'resident-evil-revelations', title: '바이오하자드 리벨레이션스', psConceptId: '232118' },
+  { slug: 'resident-evil-revelations-2', title: '바이오하자드 리벨레이션스 2', psConceptId: '232120', xboxProductId: 'BX4JBN0GWCVB', match: { ps_store: '디럭스 에디션' }, onlyEdition: { ps_store: '디럭스 에디션', xbox_store: '디럭스 에디션' } },
+  { slug: 'resident-evil-code-veronica-x', title: '바이오하자드 코드: 베로니카 X', xboxProductId: 'BQW8J8XM62JW' },
+  { slug: 'dead-rising-deluxe-remaster', title: '데드 라이징 디럭스 리마스터', psConceptId: '10009074', xboxProductId: '9P6BN1VHRRHN' },
+  { slug: 'dead-rising-4', title: 'Dead Rising 4', xboxProductId: 'C2JDCLLLBK1W' },
+  { slug: 'dead-rising-2', title: 'Dead Rising 2', xboxProductId: 'C3CSPBFVQ80K' },
+  // Ace Attorney.
+  { slug: 'apollo-justice-ace-attorney-trilogy', title: '역전재판 456 오도로키 셀렉션', psConceptId: '10006390', eshopId: '70010000067774', xboxProductId: '9P5L65VNTWCV' },
+  { slug: 'phoenix-wright-ace-attorney-trilogy', title: '역전재판 123 나루호도 셀렉션', eshopId: '70010000015845' },
+  // Crash, Spyro and Tony Hawk.
+  { slug: 'crash-bandicoot-n-sane-trilogy', title: '크래시 밴디쿳 N. 세인 트릴로지', psConceptId: '227649', xboxProductId: 'C27XPR5XDMFT' },
+  { slug: 'crash-team-racing-nitro-fueled', title: '크래시 팀 레이싱 니트로 퓨얼드', xboxProductId: 'BQRB60PW2SDL' },
+  { slug: 'spyro-reignited-trilogy', title: '스파이로 리이그나이티드 트릴로지', xboxProductId: 'BWHFZNSL0PB5' },
+  { slug: 'tony-hawks-pro-skater-3-4', title: '토니 호크 프로 스케이터 3 + 4', xboxProductId: '9N926481VT1Z' },
+  // Sonic.
+  { slug: 'sonic-frontiers', title: '소닉 프론티어', psConceptId: '10002956', eshopId: '70010000040404', xboxProductId: '9PG495V9BT52' },
+  { slug: 'sonic-superstars', title: '소닉 슈퍼스타즈', psConceptId: '10004658', eshopId: '70010000050874', xboxProductId: '9NL9H587WGMJ' },
+  { slug: 'sonic-origins', title: '소닉 오리진스', psConceptId: '10003797', eshopId: '70010000045646', xboxProductId: '9MZ9D58RNDTF' },
+  { slug: 'sonic-forces', title: '소닉 포시즈', eshopId: '70010000012033' },
+  // Star Wars.
+  { slug: 'star-wars-jedi-fallen-order', title: '스타워즈 제다이: 오더의 몰락', psConceptId: '232345', xboxProductId: 'C2CSDTSCBZ0C' },
+  { slug: 'star-wars-battlefront-ii', title: '스타워즈 배틀프론트 II', psConceptId: '229438', xboxProductId: 'C0GWTPD0S8S1' },
+  // Final Fantasy classics.
+  { slug: 'final-fantasy-vii', title: '파이널 판타지 VII', psConceptId: '221537', eshopId: '70010000018203', xboxProductId: 'BWKXQC5BL5R1' },
+  { slug: 'final-fantasy-x-x-2-hd-remaster', title: '파이널 판타지 X/X-2 HD 리마스터', xboxProductId: 'C0KSN20BRP7Z' },
+  { slug: 'final-fantasy-pixel-remaster', title: '파이널 판타지 (픽셀 리마스터)', eshopId: '70010000056564', xboxProductId: '9P20JCF7BV93' },
+  { slug: 'final-fantasy-iv-pixel-remaster', title: '파이널 판타지 IV (픽셀 리마스터)', eshopId: '70010000056579' },
+  { slug: 'final-fantasy-v-pixel-remaster', title: '파이널 판타지 V (픽셀 리마스터)', eshopId: '70010000056584' },
+  { slug: 'final-fantasy-vi-pixel-remaster', title: '파이널 판타지 VI (픽셀 리마스터)', eshopId: '70010000056589' },
+  // LEGO.
+  { slug: 'lego-marvel-super-heroes-2', title: 'LEGO 마블 슈퍼 히어로즈 2', psConceptId: '228783', xboxProductId: 'C0G91V37489H' },
+  { slug: 'lego-harry-potter-collection', title: 'LEGO 해리 포터 컬렉션', psConceptId: '223683', xboxProductId: 'C3QJ2Z8Q7HFR' },
+  { slug: 'lego-horizon-adventures', title: 'LEGO 호라이즌 어드벤처', psConceptId: '10007722', eshopId: '70010000065642' },
+  { slug: 'lego-the-incredibles', title: 'LEGO 인크레더블', eshopId: '70010000010701' },
 ];
