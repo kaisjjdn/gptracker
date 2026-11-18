@@ -584,4 +584,29 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'lego-harry-potter-collection', title: 'LEGO 해리 포터 컬렉션', psConceptId: '223683', xboxProductId: 'C3QJ2Z8Q7HFR' },
   { slug: 'lego-horizon-adventures', title: 'LEGO 호라이즌 어드벤처', psConceptId: '10007722', eshopId: '70010000065642' },
   { slug: 'lego-the-incredibles', title: 'LEGO 인크레더블', eshopId: '70010000010701' },
+  // Rockstar and 2K classics.
+  { slug: 'red-dead-redemption', title: '레드 데드 리뎀션', psConceptId: '10006164', eshopId: '70010000058658' },
+  { slug: 'la-noire', title: 'L.A. Noire', psConceptId: '229788' },
+  { slug: 'bully-scholarship-edition', title: 'Bully: Scholarship Edition', xboxProductId: 'C3WX803ZX8SD' },
+  { slug: 'mafia-definitive-edition', title: '마피아: 데피니티브 에디션', psConceptId: '235302' },
+  // Bethesda.
+  { slug: 'skyrim-anniversary-edition', title: '엘더스크롤 V: 스카이림 애니버서리 에디션', eshopId: '70010000103197' },
+  { slug: 'wolfenstein-ii-the-new-colossus', title: '울펜슈타인 II: 더 뉴 콜로서스', xboxProductId: 'C4LLMHFQ1BXQ' },
+  { slug: 'wolfenstein-the-new-order', title: '울펜슈타인: 더 뉴 오더', xboxProductId: 'BT9FFLG51VVG' },
+  { slug: 'wolfenstein-youngblood', title: '울펜슈타인: 영블러드', eshopId: '70070000006506', xboxProductId: 'C421ZX7RCG0W' },
+  { slug: 'prey', title: 'Prey', xboxProductId: 'BQMVWCMB8P59' },
+  { slug: 'dishonored-2', title: '디스아너드 2', xboxProductId: 'BSZM480TSWGP' },
+  { slug: 'the-evil-within', title: '디 이블 위딘', psConceptId: '204572' },
+  { slug: 'doom-2016', title: 'DOOM (2016)', xboxProductId: 'C3QH42WRGM3R' },
+  { slug: 'doom-and-doom-ii', title: 'DOOM + DOOM II', eshopId: '70010000078056', xboxProductId: '9P46M5JQ2PTF' },
+  { slug: 'doom-64', title: 'DOOM 64', eshopId: '70010000020405' },
+  // Metal Gear.
+  { slug: 'metal-gear-solid-master-collection-vol-1', title: '메탈기어 솔리드: 마스터 컬렉션 Vol.1', eshopId: '70070000017973', xboxProductId: '9N16X47Z5PH5', match: { xbox_store: 'MASTER COLLECTION Vol.1' } },
+  { slug: 'metal-gear-solid-v-the-phantom-pain', title: '메탈기어 솔리드 V: 더 팬텀 페인', psConceptId: '202860' },
+  { slug: 'metal-gear-rising-revengeance', title: '메탈기어 라이징: 리벤전스', xboxProductId: 'BR6HQDNQT004' },
+  // More.
+  { slug: 'tales-of-berseria', title: '테일즈 오브 베르세리아', psConceptId: '219818' },
+  { slug: 'little-nightmares', title: '리틀 나이트메어', psConceptId: '223059', eshopId: '70010000095787', xboxProductId: '9N8Q6DRTG22H' },
+  { slug: 'ring-fit-adventure', title: '링 피트 어드벤처', eshopId: '70010000028221' },
+  { slug: 'mario-rabbids-kingdom-battle', title: '마리오 + 래비드 킹덤 배틀', eshopId: '70010000009377' },
 ];
