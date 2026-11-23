@@ -89,7 +89,10 @@ export function observationsFromCache(
         (p.topCategory === 'GAME' ||
           (`Product:${p.id}` === concept.defaultProduct?.__ref && p.topCategory !== 'DEMO')),
     )
-    .filter((p: Json) => nameContains(p.name, opts.match)); // on a shared page, this game's products only
+    .filter((p: Json) => nameContains(p.name, opts.match)) // on a shared page, this game's products only
+    // An upgrade ("Digital Deluxe Upgrade") is sold to people who already own
+    // the game: an add-on, even when the store files it as a game.
+    .filter((p: Json) => !/업그레이드|upgrade/i.test(p.name ?? '') || `Product:${p.id}` === concept.defaultProduct?.__ref);
 
   // Every purchase button of a product, with its price breakdown. An offer that
   // discounts to zero is "included with a subscription", not a price.

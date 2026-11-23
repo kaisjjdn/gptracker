@@ -609,4 +609,36 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'little-nightmares', title: '리틀 나이트메어', psConceptId: '223059', eshopId: '70010000095787', xboxProductId: '9N8Q6DRTG22H' },
   { slug: 'ring-fit-adventure', title: '링 피트 어드벤처', eshopId: '70010000028221' },
   { slug: 'mario-rabbids-kingdom-battle', title: '마리오 + 래비드 킹덤 배틀', eshopId: '70010000009377' },
+  // EA.
+  { slug: 'titanfall-2', title: '타이탄폴 2', psConceptId: '221813', xboxProductId: 'C0X2HNVH08FB' },
+  { slug: 'dragon-age-inquisition', title: '드래곤 에이지: 인퀴지션', psConceptId: '201204', xboxProductId: 'C47GZZBMR5WG' },
+  { slug: 'need-for-speed-heat', title: '니드 포 스피드 히트', psConceptId: '234659', xboxProductId: 'BRZZLBF5T245' },
+  { slug: 'need-for-speed-hot-pursuit-remastered', title: '니드 포 스피드 핫 퍼슛 리마스터', psConceptId: '10000781', eshopId: '70010000029276', xboxProductId: '9NMBJQ0265ZK' },
+  { slug: 'burnout-paradise-remastered', title: '번아웃 파라다이스 리마스터', psConceptId: '231473', xboxProductId: 'BQMQ3K1BLV1T' },
+  // Warner Bros.
+  { slug: 'middle-earth-shadow-of-war', title: '미들 어스: 섀도우 오브 워', psConceptId: '216695' },
+  { slug: 'lego-dc-super-villains', title: 'LEGO DC 슈퍼 빌런', psConceptId: '231944', eshopId: '70010000013222', xboxProductId: 'BQXVSGCX6K8W' },
+  { slug: 'suicide-squad-kill-the-justice-league', title: '수어사이드 스쿼드: 킬 더 저스티스 리그', psConceptId: '10001609' },
+  // PlayStation.
+  { slug: 'ratchet-and-clank-2016', title: '라쳇 & 클랭크 (2016)', psConceptId: '214653' },
+  { slug: 'infamous-second-son', title: '인퍼머스 세컨드 선', psConceptId: '202138' },
+  { slug: 'gravity-rush-2', title: '그라비티 러시 2', psConceptId: '221698' },
+  { slug: 'the-order-1886', title: '디 오더: 1886', psConceptId: '205041' },
+  // Square Enix.
+  { slug: 'life-is-strange-true-colors', title: '라이프 이즈 스트레인지: 트루 컬러스', psConceptId: '235172', eshopId: '70010000034696', xboxProductId: '9NFWSNN4JWKB' },
+  { slug: 'life-is-strange-double-exposure', title: '라이프 이즈 스트레인지: 더블 익스포저', psConceptId: '10008183', eshopId: '70010000083309' },
+  { slug: 'life-is-strange-remastered-collection', title: '라이프 이즈 스트레인지 리마스터 컬렉션', psConceptId: '10001187', xboxProductId: '9P8MJ31FBTVF', match: { xbox_store: 'Remastered Collection' } },
+  { slug: 'life-is-strange-2', title: '라이프 이즈 스트레인지 2', eshopId: '70010000029408', xboxProductId: 'BSW8GKBVB5W8' },
+  { slug: 'life-is-strange-reunion', title: '라이프 이즈 스트레인지: 리유니언', xboxProductId: '9NVQJ53NFRT9' },
+  { slug: 'forspoken', title: '포스포큰', psConceptId: '10000846' },
+  { slug: 'dragon-quest-builders-2', title: '드래곤 퀘스트 빌더즈 2', psConceptId: '231073', xboxProductId: '9PFD00CZJ35V' },
+  // Bandai Namco and Koei Tecmo.
+  { slug: 'jujutsu-kaisen-cursed-clash', title: '주술회전 전화향명', psConceptId: '10005862', xboxProductId: '9N1T03Q2J6NH' },
+  { slug: 'sand-land', title: 'SAND LAND', psConceptId: '10005459', xboxProductId: '9PGCVR1C0MZH' },
+  { slug: 'code-vein', title: '코드 베인', psConceptId: '229759', xboxProductId: 'C4Q7K19Q0VBZ' },
+  { slug: 'one-piece-pirate-warriors-4', title: '원피스 해적무쌍 4', eshopId: '70010000018442', xboxProductId: '9NH434VV67PS' },
+  { slug: 'fairy-tail-2', title: 'FAIRY TAIL 2', psConceptId: '10011532', eshopId: '70010000082887' },
+  { slug: 'fairy-tail', title: 'FAIRY TAIL', eshopId: '70010000022096' },
+  // Nintendo.
+  { slug: 'kirby-fighters-2', title: '커비 파이터즈 2', eshopId: '70010000034637' },
 ];
