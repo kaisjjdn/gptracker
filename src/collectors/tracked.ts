@@ -641,4 +641,28 @@ export const TRACKED: TrackedGame[] = [
   { slug: 'fairy-tail', title: 'FAIRY TAIL', eshopId: '70010000022096' },
   // Nintendo.
   { slug: 'kirby-fighters-2', title: '커비 파이터즈 2', eshopId: '70010000034637' },
+  // Indie and story games.
+  { slug: 'gris', title: 'GRIS', psConceptId: '234650', xboxProductId: '9N6C6J7C3GTQ' },
+  { slug: 'neva', title: 'Neva', xboxProductId: '9N2LN3WRT82H' },
+  { slug: 'journey', title: '저니', psConceptId: '202276' },
+  { slug: 'abzu', title: 'ABZU', psConceptId: '221659' },
+  { slug: 'spiritfarer', title: '스피릿페어러', psConceptId: '10000752', xboxProductId: '9NG5L58FD3X5' },
+  { slug: 'oxenfree', title: 'Oxenfree', xboxProductId: 'BSK1GN27RB8R' },
+  { slug: 'katana-zero', title: 'Katana ZERO', xboxProductId: '9NXP19FZ7DZ4' },
+  { slug: 'deaths-door', title: "Death's Door", psConceptId: '10003808', eshopId: '70010000048195', xboxProductId: '9NDZ7NXFF622' },
+  { slug: 'cult-of-the-lamb', title: '컬트 오브 더 램', psConceptId: '10004484', eshopId: '70010000047970', xboxProductId: '9PNLPMP1GGH5' },
+  { slug: 'shovel-knight-dig', title: 'Shovel Knight Dig', eshopId: '70010000058908', xboxProductId: '9PL0XV72NBV7' },
+  { slug: 'what-remains-of-edith-finch', title: 'What Remains of Edith Finch', psConceptId: '211984', xboxProductId: 'BSLGLG8P9T01' },
+  { slug: 'the-witness', title: '더 위트니스', psConceptId: '211871', xboxProductId: 'BX1WPT5RJSB2' },
+  // Open worlds and co-op.
+  { slug: 'kingdom-come-deliverance', title: '킹덤 컴: 딜리버런스', psConceptId: '227410', eshopId: '70010000056683', xboxProductId: 'BNBWFH89FCF1',
+    match: { ps_store: 'Kingdom Come: Deliverance', xbox_store: 'Kingdom Come: Deliverance' } },
+  { slug: 'dying-light', title: '다잉 라이트', psConceptId: '201129', eshopId: '70010000032719', xboxProductId: '9N06V8XJ5G7L' },
+  { slug: 'rayman-legends', title: '레이맨 레전드 데피니티브 에디션', eshopId: '70010000012132' },
+  { slug: 'for-honor', title: '포 아너', psConceptId: '221694' },
+  { slug: 'ghost-recon-wildlands', title: '고스트 리콘 와일드랜드', psConceptId: '201697', xboxProductId: 'C2N9CS4FS1QR' },
+  { slug: 'catherine-full-body', title: '캐서린 풀 보디', psConceptId: '232987' },
+  { slug: 'borderlands-the-handsome-collection', title: '보더랜드: 핸섬 컬렉션', psConceptId: '215282', xboxProductId: 'C4DQHRNN1ZN5', match: { ps_store: 'Handsome Collection', xbox_store: 'Handsome Collection' } },
+  { slug: 'borderlands-legendary-collection', title: '보더랜드 레전더리 컬렉션', xboxProductId: '9N951JR9T3FX', match: { xbox_store: '레전더리 컬렉션' } },
+  { slug: 'new-tales-from-the-borderlands', title: '뉴 테일즈 프롬 더 보더랜드', eshopId: '70010000035174' },
 ];
