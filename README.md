@@ -20,10 +20,29 @@ npm run dev          # http://localhost:3000
 | `npm run collect -- --skip eshop` | 적은 스토어만 빼고 수집 |
 | `npm run collect -- --minutes 20` | 스토어마다 약 20분만 수집하고 멈춤 |
 | `npm run collect -- --all` | 최근에 확인한 게임까지 전부 다시 수집 |
+| `npm run discover` | 스토어 목록에서 새 게임을 찾아 추적 목록에 추가 (아래 "새 게임 자동 추가") |
+| `npm run discover -- --dry-run` | 추가될 게임만 보여 주고 아무것도 저장하지 않음 |
 | `npm run db:seed` | 샘플 게임 6개로 채우기. **기존 데이터를 모두 지웁니다.** 화면 개발용이며 운영 DB에서는 실행하지 마세요. |
 | `npm test` / `npm run typecheck` | 테스트 / 타입 검사 |
 
-추적할 게임은 `src/collectors/tracked.ts`에 적습니다.
+추적할 게임은 `src/collectors/tracked.ts`에 직접 적거나, 자동 추가 기능이 DB(`discovered_games` 표)에 넣습니다.
+
+### 새 게임 자동 추가
+
+수집 직전마다 각 스토어의 공개 목록을 보고 새 게임을 추가합니다. 추가된 게임은 같은 실행에서 바로 수집됩니다.
+
+| 스토어 | 보는 곳 |
+|---|---|
+| PS 스토어 | playstation.com 한국 사이트맵의 게임 페이지. 처음 실행할 때 있던 페이지는 기준으로만 기록하고, 그 뒤 새로 생긴 페이지만 추가 |
+| Xbox 스토어 | 둘러보기 페이지의 위시리스트 많은 순·인기순 첫 화면 |
+| 닌텐도 e숍 | 디지털 BEST(많이 팔린 순) 첫 화면 |
+
+스토어마다 매일 수십 개씩 올라오는 작은 게임까지 모두 넣으면 하루 두 번 수집으로는 다 읽을 수 없어서, 사람들이 실제로 찾는 목록만 봅니다.
+
+- 스토어 페이지에 가격이 있는 콘솔 게임만 추가합니다. 무료 게임, 추가 콘텐츠, 체험판은 빼고, 이미 추적 중인 게임의 다른 에디션도 새 게임으로 넣지 않습니다.
+- 이름이 이미 추적 중인 게임과 같으면(대소문자, 기호, 괄호 속 영어 이름, 플랫폼·에디션 표기 무시) 새 게임을 만들지 않고 그 게임에 스토어를 추가합니다.
+- 한 스토어에서 한 번에 최대 10개까지 추가합니다(`--max`로 변경).
+- 본 항목은 모두 `discovery_seen` 표에 결과(baseline, added, merged, tracked, rejected)와 함께 남아 다시 판단하지 않습니다. 잘못 추가된 게임은 `discovered_games` 표에서 지우면 더는 수집하지 않습니다(그동안 쌓인 가격 기록은 남습니다).
 
 ## 배포
 
@@ -91,7 +110,9 @@ src/collectors/          가격 수집
   retail/                디스크 가격 (쿠팡 파트너스 API)과 상품명 매칭 규칙
   detect-changes.ts      이전 가격과 비교해 변동 이유를 판단
   record.ts              가격과 변동 기록을 DB에 저장
-  tracked.ts             추적할 게임 목록
+  tracked.ts             추적할 게임 목록 (직접 고른 것)
+  discovery/, discover.ts  스토어 목록에서 새 게임 찾기
+  all-tracked.ts         직접 고른 게임 + 자동 추가된 게임
   run.ts                 수집 실행
 src/db/                  표 정의(schema.ts), 연결, 마이그레이션, 샘플 데이터
 src/lib/                 화면용 데이터 조회와 가공

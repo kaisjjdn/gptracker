@@ -1,4 +1,6 @@
-# Collects prices twice a day and writes them to the database.
+# Collects prices twice a day and writes them to the database. Before that,
+# each job looks at its store's lists for games worth adding to the catalog
+# (src/collectors/discover.ts); the ones it adds are collected in the same run.
 #
 # Each store is collected by its own job, at the same time: they are different
 # sites, so running side by side costs each of them nothing extra. A job reads
@@ -59,4 +61,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # A failed look at the store's lists should not hold up collecting prices.
+      - run: npm run discover -- ${{ matrix.store }} || echo "::warning::Discovery failed; collecting the known games only."
       - run: npm run collect -- ${{ matrix.store }} --minutes 20

@@ -160,3 +160,33 @@ export const priceEvents = pgTable(
   },
   (t) => [index('price_events_listing_time').on(t.listingId, t.occurredAt)],
 );
+
+// Games added by discovery (src/collectors/discover.ts) rather than by hand in
+// tracked.ts. A row whose slug is also in tracked.ts only adds the store ids
+// that entry lacks: the same game, found on another store.
+export const discoveredGames = pgTable('discovered_games', {
+  id: serial('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  psConceptId: text('ps_concept_id'),
+  eshopId: text('eshop_id'),
+  xboxProductId: text('xbox_product_id'),
+  source: text('source').notNull(), // the store list it was first found on
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+// Everything discovery has looked at, so each item is judged once: the game
+// pages that already existed when discovery first ran, what it added, and what
+// it turned down (and why).
+export const discoverySeen = pgTable(
+  'discovery_seen',
+  {
+    id: serial('id').primaryKey(),
+    store: text('store').notNull(), // stores.code
+    key: text('key').notNull(), // the store's id, or the page address it was found at
+    outcome: text('outcome').notNull(), // baseline, added, merged, tracked, rejected
+    note: text('note'),
+    seenAt: ts('seen_at').notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('discovery_seen_key').on(t.store, t.key)],
+);

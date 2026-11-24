@@ -21,6 +21,7 @@ import { collectNintendo } from './stores/nintendo';
 import { collectPlayStation } from './stores/playstation';
 import { collectXbox } from './stores/xbox';
 import { plan, type GameState } from './schedule';
+import { loadTracked } from './all-tracked';
 import { TRACKED, type TrackedGame } from './tracked';
 import type { Observation } from './types';
 
@@ -156,9 +157,9 @@ async function storeStates(storeId: number, regionId: number): Promise<Map<strin
 }
 
 // Collect one store. Returns the number of games that failed.
-async function runStore(collector: StoreCollector, region: Region, opts: RunOptions): Promise<number> {
+async function runStore(collector: StoreCollector, region: Region, all: TrackedGame[], opts: RunOptions): Promise<number> {
   const [store] = await db.select().from(s.stores).where(eq(s.stores.code, collector.store));
-  const tracked = TRACKED.filter((g) => collector.idOf(g) && (!opts.games || opts.games.includes(g.slug)));
+  const tracked = all.filter((g) => collector.idOf(g) && (!opts.games || opts.games.includes(g.slug)));
   const states = opts.all || opts.games ? new Map<string, GameState>() : await storeStates(store.id, region.id);
   const { due: games, hot, resting } = plan(
     tracked.map((g) => ({ item: g, state: states.get(g.slug) })),
@@ -308,10 +309,13 @@ async function main() {
   await ensureReferenceData(db);
   const [region] = await db.select().from(s.regions).where(eq(s.regions.code, REGION));
 
+  // The hand-picked games plus the ones discovery added (see discover.ts).
+  const tracked = await loadTracked(db);
+
   let failed = 0;
   for (const collector of COLLECTORS) {
     if (skip.includes(collector.store) || (only.length > 0 && !only.includes(collector.store))) continue;
-    failed += await runStore(collector, region, opts);
+    failed += await runStore(collector, region, tracked, opts);
   }
   for (const collector of RETAIL) {
     if (skip.includes(collector.store) || (only.length > 0 && !only.includes(collector.store))) continue;
